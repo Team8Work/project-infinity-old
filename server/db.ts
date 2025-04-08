@@ -12,4 +12,7 @@ if (!process.env.DATABASE_URL) {
 }
 
 export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-export const db = drizzle({ client: pool, schema });
+export const db = drizzle(pool, { schema });
+
+// Export the connection string for use with connect-pg-simple
+export const connectionString = process.env.DATABASE_URL;
