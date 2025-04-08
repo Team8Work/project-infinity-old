@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 import AppShell from "@/components/layout/app-shell";
-import ShipmentTable from "@/components/shipments/shipment-table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -24,40 +23,23 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import CreateTaskModal from "@/components/tasks/create-task-modal";
 
-export default function Shipments() {
+export default function Payments() {
   const [filter, setFilter] = useState("");
   const [status, setStatus] = useState("all");
-  const [activeTab, setActiveTab] = useState("shipments");
+  const [activeTab, setActiveTab] = useState("payments");
 
-  const { data: shipments, isLoading: shipmentsLoading, error: shipmentsError } = useQuery({
-    queryKey: ["/api/shipments"],
+  const { data: payments = [], isLoading: paymentsLoading, error: paymentsError } = useQuery({
+    queryKey: ["/api/payments"],
   });
 
-  const { data: tasks, isLoading: tasksLoading, error: tasksError } = useQuery({
+  const { data: tasks = [], isLoading: tasksLoading, error: tasksError } = useQuery({
     queryKey: ["/api/tasks"],
   });
 
-  // Filter shipment tasks - tasks with type "shipment"
-  const shipmentTasks = tasks ? tasks.filter(task => task.type === "shipment") : [];
+  // Filter payment tasks - tasks with type "payment"
+  const paymentTasks = tasks ? tasks.filter((task: any) => task.type === "payment") : [];
 
-  // Filter shipments based on user-selected filters
-  const filteredShipments = shipments 
-    ? shipments.filter(shipment => {
-        const matchesFilter = filter 
-          ? (shipment.trackingId?.toLowerCase().includes(filter.toLowerCase()) ||
-             shipment.origin?.toLowerCase().includes(filter.toLowerCase()) ||
-             shipment.destination?.toLowerCase().includes(filter.toLowerCase()))
-          : true;
-        
-        const matchesStatus = status !== "all" 
-          ? shipment.status === status
-          : true;
-        
-        return matchesFilter && matchesStatus;
-      })
-    : [];
-
-  if (shipmentsLoading && tasksLoading) {
+  if (paymentsLoading && tasksLoading) {
     return (
       <AppShell>
         <div className="flex items-center justify-center h-screen">
@@ -67,7 +49,7 @@ export default function Shipments() {
     );
   }
 
-  if (shipmentsError && tasksError) {
+  if (paymentsError && tasksError) {
     return (
       <AppShell>
         <div className="flex flex-col items-center justify-center h-screen">
@@ -84,86 +66,22 @@ export default function Shipments() {
       <div className="px-6 py-4">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold">Shipments</h1>
-            <p className="text-neutral-light">Manage and track all your shipments</p>
+            <h1 className="text-2xl font-bold">Payments</h1>
+            <p className="text-neutral-light">Manage and track all your payments</p>
           </div>
           <div className="mt-4 md:mt-0">
             <Button>
               <Plus size={16} className="mr-2" />
-              Create Shipment
+              Create Payment
             </Button>
           </div>
         </div>
 
-        <Card className="mb-6">
-          <CardHeader className="pb-3">
-            <CardTitle>Filters</CardTitle>
-            <CardDescription>
-              Filter shipments by status, date range, or search by ID
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="text-sm font-medium mb-1 block">Search</label>
-                <div className="relative">
-                  <Input
-                    placeholder="Search by ID, origin, or destination"
-                    value={filter}
-                    onChange={(e) => setFilter(e.target.value)}
-                    className="pl-9"
-                  />
-                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-light">
-                    <svg 
-                      xmlns="http://www.w3.org/2000/svg" 
-                      width="16" 
-                      height="16" 
-                      viewBox="0 0 24 24" 
-                      fill="none" 
-                      stroke="currentColor" 
-                      strokeWidth="2" 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round" 
-                      className="lucide lucide-search"
-                    >
-                      <circle cx="11" cy="11" r="8"></circle>
-                      <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                    </svg>
-                  </span>
-                </div>
-              </div>
-              <div>
-                <label className="text-sm font-medium mb-1 block">Status</label>
-                <Select value={status} onValueChange={setStatus}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="All Statuses" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Statuses</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="in-transit">In Transit</SelectItem>
-                    <SelectItem value="delivered">Delivered</SelectItem>
-                    <SelectItem value="delayed">Delayed</SelectItem>
-                    <SelectItem value="cancelled">Cancelled</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <label className="text-sm font-medium mb-1 block">Date Range</label>
-                <Button variant="outline" className="w-full justify-start">
-                  <Calendar size={16} className="mr-2" />
-                  <span>Select date range</span>
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Tabs defaultValue="shipments" value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <Tabs defaultValue="payments" value={activeTab} onValueChange={setActiveTab} className="w-full">
           <div className="flex justify-between items-center border-b mb-4">
             <TabsList className="mb-4">
-              <TabsTrigger value="shipments">Shipments</TabsTrigger>
-              <TabsTrigger value="tasks">Shipment Tasks</TabsTrigger>
+              <TabsTrigger value="payments">Payments</TabsTrigger>
+              <TabsTrigger value="tasks">Payment Tasks</TabsTrigger>
             </TabsList>
             <div className="mb-4">
               {activeTab === "tasks" && (
@@ -171,7 +89,7 @@ export default function Shipments() {
                   triggerElement={
                     <Button size="sm" className="bg-primary text-white">
                       <Plus size={16} className="mr-1" />
-                      Create Shipment Task
+                      Create Payment Task
                     </Button>
                   } 
                 />
@@ -179,28 +97,72 @@ export default function Shipments() {
             </div>
           </div>
 
-          <TabsContent value="shipments" className="mt-0">
+          <TabsContent value="payments" className="mt-0">
             <div className="bg-white rounded-lg border border-border shadow-sm">
               <div className="p-5 border-b border-border flex justify-between items-center">
                 <h3 className="font-semibold">
-                  Shipments ({filteredShipments.length})
+                  Payments ({payments.length})
                 </h3>
                 <div className="flex space-x-2">
                   <Button variant="outline" size="sm">
                     <Filter size={16} className="mr-2" />
-                    Advanced Filters
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    Export
+                    Filter
                   </Button>
                 </div>
               </div>
               
-              <ShipmentTable
-                shipments={filteredShipments}
-                isLoading={shipmentsLoading}
-                isDetailView={true}
-              />
+              <div className="p-5">
+                {payments.length === 0 ? (
+                  <div className="text-center p-8">
+                    <div className="mb-2">
+                      <AlertCircle className="h-12 w-12 mx-auto text-muted-foreground opacity-50" />
+                    </div>
+                    <h3 className="text-lg font-medium mb-1">No payments found</h3>
+                    <p className="text-muted-foreground mb-4">Create your first payment to get started.</p>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full border-collapse">
+                      <thead>
+                        <tr className="bg-muted/50">
+                          <th className="text-left p-3 font-medium">ID</th>
+                          <th className="text-left p-3 font-medium">Amount</th>
+                          <th className="text-left p-3 font-medium">Status</th>
+                          <th className="text-left p-3 font-medium">Shipment</th>
+                          <th className="text-left p-3 font-medium">Due Date</th>
+                          <th className="text-right p-3 font-medium">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y">
+                        {payments.map((payment: any) => (
+                          <tr key={payment.id} className="hover:bg-muted/50">
+                            <td className="p-3">#{payment.id}</td>
+                            <td className="p-3">${payment.amount}</td>
+                            <td className="p-3">
+                              <Badge variant={
+                                payment.status === 'paid' ? 'outline' : 
+                                payment.status === 'overdue' ? 'destructive' : 
+                                'default'
+                              }>
+                                {payment.status}
+                              </Badge>
+                            </td>
+                            <td className="p-3">
+                              {payment.shipmentId ? `#${payment.shipmentId}` : 'N/A'}
+                            </td>
+                            <td className="p-3">
+                              {payment.dueDate ? new Date(payment.dueDate).toLocaleDateString() : 'N/A'}
+                            </td>
+                            <td className="p-3 text-right">
+                              <Button variant="outline" size="sm">View</Button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
             </div>
           </TabsContent>
           
@@ -208,7 +170,7 @@ export default function Shipments() {
             <div className="bg-white rounded-lg border border-border shadow-sm">
               <div className="p-5 border-b border-border flex justify-between items-center">
                 <h3 className="font-semibold">
-                  Shipment Tasks ({shipmentTasks.length})
+                  Payment Tasks ({paymentTasks.length})
                 </h3>
                 <div className="flex space-x-2">
                   <Button variant="outline" size="sm">
@@ -223,17 +185,17 @@ export default function Shipments() {
                   <div className="flex justify-center items-center p-8">
                     <Loader2 className="h-8 w-8 animate-spin text-primary" />
                   </div>
-                ) : shipmentTasks.length === 0 ? (
+                ) : paymentTasks.length === 0 ? (
                   <div className="text-center p-8">
                     <div className="mb-2">
                       <AlertCircle className="h-12 w-12 mx-auto text-muted-foreground opacity-50" />
                     </div>
-                    <h3 className="text-lg font-medium mb-1">No shipment tasks found</h3>
-                    <p className="text-muted-foreground mb-4">Create your first shipment task to get started.</p>
+                    <h3 className="text-lg font-medium mb-1">No payment tasks found</h3>
+                    <p className="text-muted-foreground mb-4">Create your first payment task to get started.</p>
                     <CreateTaskModal />
                   </div>
                 ) : (
-                  shipmentTasks.map((task) => (
+                  paymentTasks.map((task: any) => (
                     <div key={task.id} className="p-4">
                       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2">
                         <div>

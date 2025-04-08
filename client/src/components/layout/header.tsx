@@ -23,56 +23,54 @@ export default function Header({ title = "Dashboard", description = "Task Manage
 
   return (
     <header className="bg-white border-b border-border-color">
-      <div className="flex items-center justify-between px-6 py-2">
-        <div>
-          <h1 className="text-lg font-semibold">{title}</h1>
-          <p className="text-xs text-neutral-light">{description}</p>
+      <div className="flex items-center justify-between px-4 py-1">
+        <div className="flex items-center">
+          <h1 className="text-base font-semibold mr-2">{title}</h1>
+          <p className="text-xs text-neutral-light hidden md:block">{description}</p>
         </div>
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-2">
           <CreateTaskModal 
             triggerElement={
-              <Button variant="default" size="sm" className="bg-primary text-white">
-                <span className="flex items-center">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="mr-1"
-                  >
-                    <line x1="12" y1="5" x2="12" y2="19"></line>
-                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                  </svg>
-                  Create Task
-                </span>
+              <Button variant="default" size="sm" className="bg-primary text-white h-8">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="mr-1"
+                >
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                <span className="text-xs">New Task</span>
               </Button>
             }
           />
           <div className="relative hidden md:block">
             <Input
               type="text"
-              placeholder="Search tasks..."
-              className="pl-9 pr-4 py-1 h-8 text-sm w-48"
+              placeholder="Search..."
+              className="pl-7 pr-2 h-8 text-xs w-40"
             />
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-light h-3 w-3" />
+            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-neutral-light h-3 w-3" />
           </div>
           <Button
             variant="ghost"
             size="icon"
-            className="relative p-1.5 text-neutral-light hover:text-neutral"
+            className="relative p-1 text-neutral-light hover:text-neutral h-8 w-8"
           >
             <Bell className="h-4 w-4" />
-            <span className="absolute top-1 right-1 w-2 h-2 bg-danger rounded-full"></span>
+            <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-danger rounded-full"></span>
           </Button>
           <Button
             variant="ghost"
             size="icon"
-            className="p-1.5 text-neutral-light hover:text-neutral"
+            className="p-1 text-neutral-light hover:text-neutral h-8 w-8"
           >
             <Settings className="h-4 w-4" />
           </Button>
@@ -80,29 +78,29 @@ export default function Header({ title = "Dashboard", description = "Task Manage
       </div>
 
       {/* Tab Navigation */}
-      <div className="flex border-b border-border-color px-6 overflow-x-auto">
+      <div className="flex px-4 overflow-x-auto">
         <Link href="/">
-          <a className={`px-4 py-2 text-sm font-medium ${isActiveTab("/") ? "border-b-2 border-primary text-primary" : "text-neutral-light hover:text-neutral"}`}>
-            Overview
+          <a className={`px-3 py-1.5 text-xs font-medium ${isActiveTab("/") ? "border-b-2 border-primary text-primary" : "text-neutral-light hover:text-neutral"}`}>
+            Dashboard
           </a>
         </Link>
-        <Link href="/performance">
-          <a className={`px-4 py-2 text-sm font-medium ${isActiveTab("/performance") ? "border-b-2 border-primary text-primary" : "text-neutral-light hover:text-neutral"}`}>
-            Performance
+        <Link href="/shipments">
+          <a className={`px-3 py-1.5 text-xs font-medium ${isActiveTab("/shipments") ? "border-b-2 border-primary text-primary" : "text-neutral-light hover:text-neutral"}`}>
+            Shipments
           </a>
         </Link>
-        <Link href="/analytics">
-          <a className={`px-4 py-2 text-sm font-medium ${isActiveTab("/analytics") ? "border-b-2 border-primary text-primary" : "text-neutral-light hover:text-neutral"}`}>
-            Analytics
+        <Link href="/payments">
+          <a className={`px-3 py-1.5 text-xs font-medium ${isActiveTab("/payments") ? "border-b-2 border-primary text-primary" : "text-neutral-light hover:text-neutral"}`}>
+            Payments
           </a>
         </Link>
-        <Link href="/reports">
-          <a className={`px-4 py-2 text-sm font-medium ${isActiveTab("/reports") ? "border-b-2 border-primary text-primary" : "text-neutral-light hover:text-neutral"}`}>
-            Reports
+        <Link href="/tracking">
+          <a className={`px-3 py-1.5 text-xs font-medium ${isActiveTab("/tracking") ? "border-b-2 border-primary text-primary" : "text-neutral-light hover:text-neutral"}`}>
+            Tracking
           </a>
         </Link>
         <Link href="/history">
-          <a className={`px-4 py-2 text-sm font-medium ${isActiveTab("/history") ? "border-b-2 border-primary text-primary" : "text-neutral-light hover:text-neutral"}`}>
+          <a className={`px-3 py-1.5 text-xs font-medium ${isActiveTab("/history") ? "border-b-2 border-primary text-primary" : "text-neutral-light hover:text-neutral"}`}>
             History
           </a>
         </Link>
