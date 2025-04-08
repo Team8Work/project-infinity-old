@@ -3,6 +3,7 @@ import AppShell from "@/components/layout/app-shell";
 import StatCard from "@/components/dashboard/stat-card";
 import TaskList from "@/components/tasks/task-list";
 import CreateTaskModal from "@/components/tasks/create-task-modal";
+import ViewAllTasksModal from "@/components/tasks/view-all-tasks-modal";
 import { Badge } from "@/components/ui/badge";
 import { 
   Loader2, 
@@ -12,14 +13,27 @@ import {
   Filter, 
   ClipboardCheck,
   AlertCircle,
-  CheckCircle
+  CheckCircle,
+  User,
+  UserRound,
+  ShieldCheck
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useAuth } from "@/hooks/use-auth";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export default function Dashboard() {
   const [dateRange, setDateRange] = useState("last30days");
+  const [activeTaskType, setActiveTaskType] = useState<string | null>(null);
+  const [devRole, setDevRole] = useState<string | null>(null);
+  const { user } = useAuth();
 
   const { data: stats, isLoading, error } = useQuery({
     queryKey: ["/api/dashboard/stats"],
@@ -86,6 +100,33 @@ export default function Dashboard() {
             <Button size="sm">
               Export
             </Button>
+            
+            {/* Developer Mode Role Switcher */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="bg-gray-100 border-gray-300 ml-2">
+                  <ShieldCheck className="mr-2 h-4 w-4" />
+                  Developer Mode
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setDevRole("admin")} className={devRole === "admin" ? "bg-primary/10" : ""}>
+                  <ShieldCheck className="mr-2 h-4 w-4" />
+                  <span>Admin View</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setDevRole("manager")} className={devRole === "manager" ? "bg-primary/10" : ""}>
+                  <UserRound className="mr-2 h-4 w-4" />
+                  <span>Manager View</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setDevRole("employee")} className={devRole === "employee" ? "bg-primary/10" : ""}>
+                  <User className="mr-2 h-4 w-4" />
+                  <span>Employee View</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setDevRole(null)} className={!devRole ? "bg-primary/10" : ""}>
+                  <span>Reset (Use Actual Role)</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
 
@@ -195,27 +236,60 @@ export default function Dashboard() {
               
               {/* Task Filters */}
               <div className="flex space-x-2 mb-4 overflow-x-auto">
-                <Button variant="default" size="sm" className="rounded-full text-xs">
+                {/* Task filters with improved styling and click handling */}
+                <Button 
+                  variant={activeTaskType === null ? "default" : "outline"} 
+                  size="sm" 
+                  className="rounded-full text-xs"
+                  onClick={() => setActiveTaskType(null)}
+                >
                   All Tasks
                 </Button>
-                <Button variant="outline" size="sm" className="rounded-full text-xs">
-                  Shipment
+                <Button 
+                  variant={activeTaskType === "shipment" ? "default" : "outline"} 
+                  size="sm" 
+                  className="rounded-full text-xs"
+                  onClick={() => setActiveTaskType("shipment")}
+                >
+                  <span className="mr-1">📦</span> Shipment
                 </Button>
-                <Button variant="outline" size="sm" className="rounded-full text-xs">
-                  Payment
+                <Button 
+                  variant={activeTaskType === "payment" ? "default" : "outline"} 
+                  size="sm" 
+                  className="rounded-full text-xs"
+                  onClick={() => setActiveTaskType("payment")}
+                >
+                  <span className="mr-1">💰</span> Payment
                 </Button>
-                <Button variant="outline" size="sm" className="rounded-full text-xs">
-                  Damage
+                <Button 
+                  variant={activeTaskType === "damage" ? "default" : "outline"} 
+                  size="sm" 
+                  className="rounded-full text-xs"
+                  onClick={() => setActiveTaskType("damage")}
+                >
+                  <span className="mr-1">🛠️</span> Damage
                 </Button>
-                <Button variant="outline" size="sm" className="rounded-full text-xs">
-                  Complaint
+                <Button 
+                  variant={activeTaskType === "complaint" ? "default" : "outline"} 
+                  size="sm" 
+                  className="rounded-full text-xs"
+                  onClick={() => setActiveTaskType("complaint")}
+                >
+                  <span className="mr-1">📝</span> Complaint
                 </Button>
               </div>
 
-              <TaskList tasks={stats?.pendingTasks || []} />
+              <TaskList 
+                tasks={stats?.pendingTasks || []} 
+                taskType={activeTaskType || undefined}
+                compact={true}
+              />
             </div>
             <div className="p-4 border-t border-border text-center">
-              <Button variant="link">View All Tasks</Button>
+              <ViewAllTasksModal 
+                trigger={<Button variant="link">View All Tasks</Button>}
+                tasks={stats?.allTasks || []}
+              />
             </div>
           </div>
         </div>
@@ -252,9 +326,14 @@ export default function Dashboard() {
                 <Button variant="outline" size="sm">
                   Filter
                 </Button>
-                <Button variant="outline" size="sm" className="text-primary border-primary hover:bg-primary hover:text-white">
-                  View All
-                </Button>
+                <ViewAllTasksModal 
+                  trigger={
+                    <Button variant="outline" size="sm" className="text-primary border-primary hover:bg-primary hover:text-white">
+                      View All
+                    </Button>
+                  }
+                  tasks={stats?.allTasks || []}
+                />
               </div>
             </div>
             <div className="p-5">

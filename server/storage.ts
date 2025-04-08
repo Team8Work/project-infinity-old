@@ -562,21 +562,22 @@ export class MemStorage implements IStorage {
     });
     
     return {
-      tasks: {
+      counts: {
         total: totalTasks,
         pending: pendingTasks.length,
         inProgress: inProgressTasks.length,
         completed: completedTasks.length,
-        overdue: overdueTasks,
-        completionRate: completionRate.toFixed(1),
-        onTimeCompletion: onTimePercentage.toFixed(1)
+        overdue: overdueTasks
       },
+      completionRate: parseFloat(completionRate.toFixed(1)),
+      onTimeCompletion: parseFloat(onTimePercentage.toFixed(1)),
       priorities: {
         urgent: urgentTasks,
         high: highPriorityTasks,
         medium: mediumPriorityTasks,
         low: lowPriorityTasks
       },
+      allTasks: tasks,
       recentTasks: tasks.sort((a, b) => {
         const dateA = a.updatedAt || a.createdAt || new Date(0);
         const dateB = b.updatedAt || b.createdAt || new Date(0);
@@ -1000,17 +1001,22 @@ export class DatabaseStorage implements IStorage {
         completed: completedTasks.length,
         overdue: overdueTasks,
       },
-      completionRate,
-      onTimePercentage,
+      completionRate: parseFloat(completionRate.toFixed(1)),
+      onTimeCompletion: parseFloat(onTimePercentage.toFixed(1)),
       priorities: {
         urgent: urgentTasks,
         high: highPriorityTasks,
         medium: mediumPriorityTasks,
         low: lowPriorityTasks,
       },
+      allTasks: tasksList,
       assignees: Object.values(tasksByAssignee),
       recentTasks,
       pendingTasks: pendingTasksList,
+      tasksByType: tasksList.reduce((acc, task) => {
+        acc[task.type] = (acc[task.type] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>)
     };
   }
 }
