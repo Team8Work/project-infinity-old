@@ -8,7 +8,9 @@ import Tasks from "@/pages/tasks";
 import Finances from "@/pages/finances";
 import Tracking from "@/pages/tracking";
 import History from "@/pages/history";
+import Users from "@/pages/users";
 import { ProtectedRoute } from "@/lib/protected-route";
+import { AdminRoute } from "@/lib/admin-route";
 import { DebugLogin } from "@/components/debug-login";
 
 function Router() {
@@ -20,6 +22,7 @@ function Router() {
       <ProtectedRoute path="/finances" component={Finances} />
       <ProtectedRoute path="/tracking" component={Tracking} />
       <ProtectedRoute path="/history" component={History} />
+      <AdminRoute path="/users" component={Users} />
       <Route path="/auth" component={AuthPage} />
       <Route component={NotFound} />
     </Switch>
