@@ -29,28 +29,31 @@ export default function Header({ title = "Dashboard", description = "Task Manage
           <p className="text-xs text-neutral-light hidden md:block">{description}</p>
         </div>
         <div className="flex items-center space-x-2">
-          <CreateTaskModal 
-            triggerElement={
-              <Button variant="default" size="sm" className="bg-primary text-white h-8">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="mr-1"
-                >
-                  <line x1="12" y1="5" x2="12" y2="19"></line>
-                  <line x1="5" y1="12" x2="19" y2="12"></line>
-                </svg>
-                <span className="text-xs">New Task</span>
-              </Button>
-            }
-          />
+          {/* Only admin and managers can create tasks */}
+          {user?.role !== 'employee' && (
+            <CreateTaskModal 
+              triggerElement={
+                <Button variant="default" size="sm" className="bg-primary text-white h-8">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="mr-1"
+                  >
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>
+                  <span className="text-xs">New Task</span>
+                </Button>
+              }
+            />
+          )}
           <div className="relative hidden md:block">
             <Input
               type="text"
@@ -67,13 +70,16 @@ export default function Header({ title = "Dashboard", description = "Task Manage
             <Bell className="h-4 w-4" />
             <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-danger rounded-full"></span>
           </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="p-1 text-neutral-light hover:text-neutral h-8 w-8"
-          >
-            <Settings className="h-4 w-4" />
-          </Button>
+          {/* Only show settings to admin users */}
+          {user?.role === 'admin' && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="p-1 text-neutral-light hover:text-neutral h-8 w-8"
+            >
+              <Settings className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       </div>
 
@@ -84,26 +90,52 @@ export default function Header({ title = "Dashboard", description = "Task Manage
             Dashboard
           </a>
         </Link>
+        
+        {/* Shipments (all roles) */}
         <Link href="/shipments">
           <a className={`px-3 py-1.5 text-xs font-medium ${isActiveTab("/shipments") ? "border-b-2 border-primary text-primary" : "text-neutral-light hover:text-neutral"}`}>
             Shipments
           </a>
         </Link>
+        
+        {/* Payments (all roles) */}
         <Link href="/payments">
           <a className={`px-3 py-1.5 text-xs font-medium ${isActiveTab("/payments") ? "border-b-2 border-primary text-primary" : "text-neutral-light hover:text-neutral"}`}>
             Payments
           </a>
         </Link>
+        
+        {/* Tracking (all roles) */}
         <Link href="/tracking">
           <a className={`px-3 py-1.5 text-xs font-medium ${isActiveTab("/tracking") ? "border-b-2 border-primary text-primary" : "text-neutral-light hover:text-neutral"}`}>
             Tracking
           </a>
         </Link>
+        
+        {/* History (all roles) */}
         <Link href="/history">
           <a className={`px-3 py-1.5 text-xs font-medium ${isActiveTab("/history") ? "border-b-2 border-primary text-primary" : "text-neutral-light hover:text-neutral"}`}>
             History
           </a>
         </Link>
+        
+        {/* Tasks Management (manager and admin only) */}
+        {user?.role !== 'employee' && (
+          <Link href="/tasks">
+            <a className={`px-3 py-1.5 text-xs font-medium ${isActiveTab("/tasks") ? "border-b-2 border-primary text-primary" : "text-neutral-light hover:text-neutral"}`}>
+              Tasks
+            </a>
+          </Link>
+        )}
+        
+        {/* Users Management (admin only) */}
+        {user?.role === 'admin' && (
+          <Link href="/users">
+            <a className={`px-3 py-1.5 text-xs font-medium ${isActiveTab("/users") ? "border-b-2 border-primary text-primary" : "text-neutral-light hover:text-neutral"}`}>
+              Users
+            </a>
+          </Link>
+        )}
       </div>
     </header>
   );
