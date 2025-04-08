@@ -4,6 +4,7 @@ import StatCard from "@/components/dashboard/stat-card";
 import ChartCard from "@/components/dashboard/chart-card";
 import ShipmentTable from "@/components/shipments/shipment-table";
 import TaskList from "@/components/tasks/task-list";
+import CreateTaskModal from "@/components/tasks/create-task-modal";
 import { Loader2 } from "lucide-react";
 import {
   TruckIcon,
@@ -12,7 +13,8 @@ import {
   Clock,
   Calendar,
   DollarSign,
-  CheckCircle
+  CheckCircle,
+  Plus
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -130,7 +132,7 @@ export default function Dashboard() {
         {/* Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
           <ChartCard title="Task Completion Trends">
-            <div className="h-[300px]">
+            <div className="h-[220px]">
               <Chart
                 type="bar"
                 data={taskCompletionData}
@@ -154,7 +156,7 @@ export default function Dashboard() {
             </div>
           </ChartCard>
           <ChartCard title="Task Distribution by Type">
-            <div className="h-[300px]">
+            <div className="h-[220px]">
               <Chart
                 type="line"
                 data={taskCategoryData}
@@ -228,24 +230,28 @@ export default function Dashboard() {
           <div className="bg-white rounded-lg border border-border shadow-sm">
             <div className="p-5 border-b border-border flex justify-between items-center">
               <h3 className="font-semibold">Task Management</h3>
-              <Button size="sm">
-                <svg 
-                  xmlns="http://www.w3.org/2000/svg" 
-                  width="16" 
-                  height="16" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  strokeWidth="2" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round" 
-                  className="mr-1"
-                >
-                  <line x1="12" y1="5" x2="12" y2="19"></line>
-                  <line x1="5" y1="12" x2="19" y2="12"></line>
-                </svg>
-                New Task
-              </Button>
+              <CreateTaskModal 
+                triggerElement={
+                  <Button size="sm" className="bg-primary text-white">
+                    <svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      width="16" 
+                      height="16" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeWidth="2" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      className="mr-1"
+                    >
+                      <line x1="12" y1="5" x2="12" y2="19"></line>
+                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    New Task
+                  </Button>
+                }
+              />
             </div>
             <div className="p-5">
               {/* Task Filters */}
@@ -316,28 +322,28 @@ export default function Dashboard() {
               </div>
             </div>
             <div className="p-5">
-              <div className="h-80 bg-gray-100 rounded-md relative overflow-hidden">
+              <div className="h-60 bg-gray-100 rounded-md relative overflow-hidden">
                 <div className="absolute inset-0 flex items-center justify-center text-neutral-light">
                   <div className="text-center">
                     <svg 
                       xmlns="http://www.w3.org/2000/svg" 
-                      width="48" 
-                      height="48" 
+                      width="36" 
+                      height="36" 
                       viewBox="0 0 24 24" 
                       fill="none" 
                       stroke="currentColor" 
                       strokeWidth="2" 
                       strokeLinecap="round" 
                       strokeLinejoin="round" 
-                      className="mx-auto mb-3"
+                      className="mx-auto mb-2"
                     >
                       <rect x="18" y="3" width="4" height="18"></rect>
                       <rect x="10" y="8" width="4" height="13"></rect>
                       <rect x="2" y="13" width="4" height="8"></rect>
                     </svg>
-                    <p>Task distribution by team<br />and completion metrics</p>
-                    <Button className="mt-3">
-                      View Detailed Analytics
+                    <p className="text-sm">Task distribution by team<br />and completion metrics</p>
+                    <Button size="sm" className="mt-2">
+                      View Analytics
                     </Button>
                   </div>
                 </div>
