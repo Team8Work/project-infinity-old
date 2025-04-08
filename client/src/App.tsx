@@ -9,6 +9,7 @@ import Finances from "@/pages/finances";
 import Tracking from "@/pages/tracking";
 import History from "@/pages/history";
 import { ProtectedRoute } from "@/lib/protected-route";
+import { DebugLogin } from "@/components/debug-login";
 
 function Router() {
   return (
@@ -30,6 +31,7 @@ function App() {
     <>
       <Router />
       <Toaster />
+      <DebugLogin />
     </>
   );
 }
