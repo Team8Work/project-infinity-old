@@ -31,12 +31,12 @@ const SidebarLink = ({ href, icon, children, active, onClick }: SidebarLinkProps
       <button
         onClick={onClick}
         className={cn(
-          "flex items-center space-x-2 px-4 py-2 text-neutral-light hover:bg-background w-full text-left transition-colors",
+          "flex items-center space-x-1.5 px-3 py-1 text-neutral-light hover:bg-background w-full text-left transition-colors",
           active && "bg-primary/5 text-primary border-l-2 border-primary font-medium"
         )}
       >
-        <span className="w-5 text-center">{icon}</span>
-        <span className="text-xs">{children}</span>
+        <span className="w-4 text-center">{icon}</span>
+        <span className="text-[10px]">{children}</span>
       </button>
     </Link>
   );
@@ -69,25 +69,25 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
   return (
     <aside className={cn(
       "bg-white border-r border-border-color transition-all flex flex-col h-full",
-      collapsed ? "w-20" : "w-64"
+      collapsed ? "w-16" : "w-52" // Reduced width from w-20/w-64 to w-16/w-52
     )}>
       {/* Logo Area */}
-      <div className="pt-5 px-4 border-b border-border-color pb-4">
-        <div className="flex items-center justify-between mb-1">
+      <div className="pt-3 px-3 border-b border-border-color pb-2">
+        <div className="flex items-center justify-between">
           <div className="flex items-center">
-            <div className="w-9 h-9 bg-primary rounded-md flex items-center justify-center text-white font-bold">
-              <Truck size={18} />
+            <div className="w-6 h-6 bg-primary rounded-md flex items-center justify-center text-white font-bold">
+              <Truck size={14} />
             </div>
-            {!collapsed && <span className="ml-2 font-semibold text-base">Task Manager</span>}
+            {!collapsed && <span className="ml-2 font-semibold text-[11px]">Task Manager</span>}
           </div>
           <button 
             onClick={onToggle}
-            className="text-neutral-light hover:text-neutral p-1.5 rounded-md hover:bg-gray-100"
+            className="text-neutral-light hover:text-neutral p-0.5 rounded-md hover:bg-gray-100"
           >
             <svg 
               xmlns="http://www.w3.org/2000/svg" 
-              width="16" 
-              height="16" 
+              width="12" 
+              height="12" 
               viewBox="0 0 24 24" 
               fill="none" 
               stroke="currentColor" 
@@ -105,21 +105,21 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
 
       {/* User Info */}
       {!collapsed && (
-        <div className="p-3 border-b border-border-color">
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-semibold text-xs">
+        <div className="py-2 px-3 border-b border-border-color">
+          <div className="flex items-center space-x-1.5">
+            <div className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center font-semibold text-[10px]">
               {getInitials()}
             </div>
             <div>
-              <div className="font-medium text-xs">{user?.fullName}</div>
-              <div className="text-xs flex items-center">
+              <div className="font-medium text-[10px]">{user?.fullName}</div>
+              <div className="text-[10px] flex items-center">
                 <span className={cn(
-                  "text-white text-[10px] px-1.5 py-0.5 rounded-full",
+                  "text-white text-[8px] px-1 py-0.5 rounded-full",
                   user?.role === "admin" && "bg-primary",
                   user?.role === "manager" && "bg-secondary",
                   user?.role === "employee" && "bg-blue-500"
                 )}>
-                  {user?.role.charAt(0).toUpperCase() + user?.role.slice(1)}
+                  {user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'User'}
                 </span>
               </div>
             </div>
@@ -128,9 +128,9 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
       )}
 
       {/* Navigation Menu */}
-      <nav className="flex-1 overflow-y-auto py-3">
+      <nav className="flex-1 overflow-y-auto py-2">
         <ul>
-          <li className={cn("px-4 py-1 text-xs text-neutral-light font-medium", collapsed && "text-center")}>
+          <li className={cn("px-3 py-0.5 text-[10px] text-neutral-light font-medium", collapsed && "text-center")}>
             {!collapsed ? "NAVIGATION" : "-"}
           </li>
           <li>
@@ -181,7 +181,7 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
 
           {(user?.role === "admin" || user?.role === "manager") && (
             <>
-              <li className={cn("px-4 py-1 mt-6 text-xs text-neutral-light font-medium", collapsed && "text-center")}>
+              <li className={cn("px-3 py-0.5 mt-4 text-[10px] text-neutral-light font-medium", collapsed && "text-center")}>
                 {!collapsed ? "MANAGEMENT" : "-"}
               </li>
               
@@ -227,33 +227,33 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
       </nav>
 
       {/* Footer */}
-      <div className="py-2 px-3 border-t border-border-color">
+      <div className="py-1.5 px-2 border-t border-border-color">
         {!collapsed ? (
-          <div className="flex items-center justify-between text-xs text-neutral-light">
+          <div className="flex items-center justify-between text-[10px] text-neutral-light">
             <Button 
               variant="ghost" 
-              className="hover:text-primary p-0 h-auto flex items-center text-xs font-normal" 
+              className="hover:text-primary p-0 h-auto flex items-center text-[10px] font-normal" 
               onClick={handleLogout}
             >
-              <LogOut size={12} className="mr-1" />
+              <LogOut size={10} className="mr-1" />
               <span>Log out</span>
             </Button>
             <a href="#" className="hover:text-primary flex items-center">
-              <HelpCircle size={12} className="mr-1" />
+              <HelpCircle size={10} className="mr-1" />
               <span>Help</span>
             </a>
           </div>
         ) : (
-          <div className="flex flex-col items-center space-y-2 text-neutral-light">
+          <div className="flex flex-col items-center space-y-1.5 text-neutral-light">
             <Button 
               variant="ghost" 
               className="hover:text-primary p-0 h-auto" 
               onClick={handleLogout}
             >
-              <LogOut size={14} />
+              <LogOut size={12} />
             </Button>
             <a href="#" className="hover:text-primary">
-              <HelpCircle size={14} />
+              <HelpCircle size={12} />
             </a>
           </div>
         )}
