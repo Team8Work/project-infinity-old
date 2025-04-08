@@ -508,6 +508,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get all users (admin only)
+  app.get("/api/users", checkRole(["admin"]), async (req, res, next) => {
+    try {
+      const users = await storage.getUsers();
+      // Don't send passwords back to client
+      const usersWithoutPasswords = users.map(user => {
+        const { password, ...userWithoutPassword } = user;
+        return userWithoutPassword;
+      });
+      res.json(usersWithoutPasswords);
+    } catch (err) {
+      next(err);
+    }
+  });
+
   // Delete user (admin only)
   app.delete("/api/users/:id", checkRole(["admin"]), async (req, res, next) => {
     try {
