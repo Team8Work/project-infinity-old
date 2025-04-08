@@ -61,7 +61,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/shipments", checkRole(["admin", "manager", "power-user"]), async (req, res, next) => {
+  app.post("/api/shipments", checkRole(["admin", "manager"]), async (req, res, next) => {
     try {
       const validatedData = insertShipmentSchema.parse(req.body);
       const shipment = await storage.createShipment(validatedData);
@@ -74,7 +74,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/shipments/:id", checkRole(["admin", "manager", "power-user"]), async (req, res, next) => {
+  app.put("/api/shipments/:id", checkRole(["admin", "manager"]), async (req, res, next) => {
     try {
       const id = parseInt(req.params.id);
       const shipment = await storage.getShipment(id);
@@ -141,7 +141,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/payments", checkRole(["admin", "manager", "power-user"]), async (req, res, next) => {
+  app.post("/api/payments", checkRole(["admin", "manager"]), async (req, res, next) => {
     try {
       const validatedData = insertPaymentSchema.parse(req.body);
       const payment = await storage.createPayment(validatedData);
@@ -154,7 +154,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/payments/:id", checkRole(["admin", "manager", "power-user"]), async (req, res, next) => {
+  app.put("/api/payments/:id", checkRole(["admin", "manager"]), async (req, res, next) => {
     try {
       const id = parseInt(req.params.id);
       const payment = await storage.getPayment(id);
@@ -252,7 +252,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Get tasks created by the current user
-  app.get("/api/tasks/assigned-by-me", checkRole(["admin", "manager", "power-user"]), async (req, res, next) => {
+  app.get("/api/tasks/assigned-by-me", checkRole(["admin", "manager"]), async (req, res, next) => {
     try {
       if (!req.user) {
         return res.status(401).json({ message: "Not authenticated" });
@@ -277,14 +277,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (req.user.role === 'admin' || req.user.role === 'manager') {
         // Admins and managers can see all tasks
         tasks = await storage.getTasks();
-      } else if (req.user.role === 'power-user') {
-        // Power users can see tasks assigned to them and tasks without assignee
-        const allTasks = await storage.getTasks();
-        tasks = allTasks.filter(task => 
-          !task.assignedTo || task.assignedTo === req.user.id || task.assignedBy === req.user.id
-        );
       } else {
-        // Regular users can only see tasks assigned to them
+        // Employees can only see tasks assigned to them
         tasks = await storage.getTasks({ assignedTo: req.user.id });
       }
       
@@ -326,7 +320,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Create new task
-  app.post("/api/tasks", checkRole(["admin", "manager", "power-user"]), async (req, res, next) => {
+  app.post("/api/tasks", checkRole(["admin", "manager"]), async (req, res, next) => {
     try {
       if (!req.user) {
         return res.status(401).json({ message: "Not authenticated" });
@@ -353,7 +347,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Update task
-  app.put("/api/tasks/:id", checkRole(["admin", "manager", "power-user", "user"]), async (req, res, next) => {
+  app.put("/api/tasks/:id", checkRole(["admin", "manager", "employee"]), async (req, res, next) => {
     try {
       if (!req.user) {
         return res.status(401).json({ message: "Not authenticated" });

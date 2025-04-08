@@ -19,7 +19,7 @@ export const insertUserSchema = createInsertSchema(users)
   .extend({
     password: z.string().min(8, "Password must be at least 8 characters long"),
     email: z.string().email("Invalid email format"),
-    role: z.enum(["admin", "manager", "power-user", "user", "client"]).default("client"),
+    role: z.enum(["admin", "manager", "employee"]).default("employee"),
   });
 
 // Shipment related schemas

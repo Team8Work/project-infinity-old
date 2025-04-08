@@ -100,12 +100,13 @@ export default function CreateTaskModal({
   // Mutation for creating a task
   const createTaskMutation = useMutation({
     mutationFn: async (data: TaskFormValues) => {
-      // Transform assignedTo from string to number
+      // Transform assignedTo from string to number and handle date properly
       const transformedData = {
         ...data,
         assignedTo: data.assignedTo ? parseInt(data.assignedTo) : null,
         assignedBy: user?.id,
         relatedId: data.relatedId ? parseInt(data.relatedId) : null,
+        // The date object will be automatically serialized to ISO string during JSON.stringify
       };
       
       const res = await apiRequest("POST", "/api/tasks", transformedData);
