@@ -54,10 +54,8 @@ export default function EmployeeDashboard() {
     queryKey: ["/api/tasks"],
   });
 
-  // Filter tasks that are assigned to the current user
-  const assignedTasks = tasks && Array.isArray(tasks) 
-    ? tasks.filter((task) => task.assignedTo === user?.id) 
-    : [];
+  // All tasks from the API are already filtered to show only those assigned to the current user for employees
+  const assignedTasks = tasks && Array.isArray(tasks) ? tasks : [];
   
   const pendingAssignedTasks = assignedTasks.filter((task) => task.status === "pending" || task.status === "in-progress");
   const completedAssignedTasks = assignedTasks.filter((task) => task.status === "completed");
