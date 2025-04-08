@@ -273,6 +273,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Not authenticated" });
       }
       
+      // Troubleshooting logs for task assignment
+      console.log(`User ${req.user.id} (${req.user.username}) with role ${req.user.role} is requesting tasks`);
+      
       // Filter tasks based on user role
       let tasks;
       if (req.user.role === 'admin' || req.user.role === 'manager') {
@@ -281,6 +284,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         // Employees can only see tasks assigned to them
         tasks = await storage.getTasks({ assignedTo: req.user.id });
+        console.log(`Found ${tasks.length} tasks assigned to employee ${req.user.id}`);
+      }
+      
+      // Database adapter can sometimes store IDs as strings, so let's make sure we're comparing correctly
+      if (tasks.length === 0 && req.user.role === 'employee') {
+        // Get all tasks and manually filter them
+        const allTasks = await storage.getTasks();
+        
+        // Try string comparison as a fallback if number comparison doesn't work
+        tasks = allTasks.filter(task => {
+          return String(task.assignedTo) === String(req.user?.id);
+        });
+        
+        console.log(`After string comparison, found ${tasks.length} tasks assigned to employee ${req.user.id}`);
       }
       
       res.json(tasks);
@@ -307,8 +324,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const canView = 
         req.user.role === 'admin' || 
         req.user.role === 'manager' ||
-        task.assignedTo === req.user.id ||
-        task.assignedBy === req.user.id;
+        String(task.assignedTo) === String(req.user.id) ||
+        String(task.assignedBy) === String(req.user.id);
         
       if (!canView) {
         return res.status(403).json({ message: "You don't have permission to view this task" });
@@ -363,8 +380,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Check permissions: only assignee can update status,
       // only admin/manager/assigner can update other fields
-      const isAssignee = task.assignedTo === req.user.id;
-      const isAssigner = task.assignedBy === req.user.id;
+      const isAssignee = String(task.assignedTo) === String(req.user.id);
+      const isAssigner = String(task.assignedBy) === String(req.user.id);
       const isAdminOrManager = ['admin', 'manager'].includes(req.user.role);
       
       if (!isAssignee && !isAssigner && !isAdminOrManager) {

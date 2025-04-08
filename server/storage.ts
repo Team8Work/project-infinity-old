@@ -433,6 +433,10 @@ export class MemStorage implements IStorage {
     if (query) {
       tasks = tasks.filter(task => {
         return Object.entries(query).every(([key, value]) => {
+          // Handle potential type mismatches between assignedTo and userId
+          if (key === "assignedTo" || key === "assignedBy") {
+            return String(task[key as keyof Task]) === String(value);
+          }
           return task[key as keyof Task] === value;
         });
       });
@@ -861,6 +865,20 @@ export class DatabaseStorage implements IStorage {
       return await db.select().from(tasks);
     }
     
+    // Special handling for assignedTo/assignedBy which might have string/number comparison issues
+    if (query.assignedTo !== undefined || query.assignedBy !== undefined) {
+      const allTasks = await db.select().from(tasks);
+      return allTasks.filter(task => {
+        return Object.entries(query).every(([key, value]) => {
+          if ((key === 'assignedTo' || key === 'assignedBy') && value !== undefined) {
+            return String(task[key as keyof Task]) === String(value);
+          }
+          return task[key as keyof Task] === value;
+        });
+      });
+    }
+    
+    // Standard query for other parameters
     let queryBuilder = db.select().from(tasks);
     
     Object.entries(query).forEach(([key, value]) => {
