@@ -1,0 +1,42 @@
+name: Deploy Application
+
+on:
+  workflow_run:
+    workflows: ["CI/CD Pipeline"]
+    branches: [main, master]
+    types: [completed]
+  # Allow manual triggering
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Download build artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: build-files
+        path: dist/
+      # This step will be skipped if manually triggered and artifacts aren't available
+      continue-on-error: true
+      
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+    
+    # This is a placeholder for actual deployment steps
+    # Replace with your actual deployment configuration
+    - name: Deploy to production
+      run: |
+        echo "Deploying application to production environment"
+        # Example deployment commands:
+        # - npm install -g deployment-tool
+        # - deployment-tool --target=production
+        
+    - name: Notify deployment status
+      run: echo "Deployment completed successfully"
