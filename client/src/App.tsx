@@ -34,29 +34,53 @@ function Router() {
   
   // Redirect users to appropriate views based on their role when they access protected routes
   useEffect(() => {
-    if (user && location === "/") {
-      // Already handled by the RoleBasedDashboard component
-    } else if (user && location === "/users" && user.role !== "admin") {
-      setLocation("/");
-    } else if (user && location === "/tasks" && user.role === "employee") {
-      // Employees don't need task management page, as it's handled in their dashboard
+    // No need to handle root route as it's already handled by RoleBasedDashboard
+    
+    // Redirect from users page if not admin
+    if (user && location === "/users" && user.role !== "admin") {
       setLocation("/");
     }
+    
+    // Redirect from tasks page if employee
+    else if (user && location === "/tasks" && user.role === "employee") {
+      setLocation("/");
+    }
+    
+    // Hide settings pages from non-admins (if we add these in the future)
+    else if (user && location.startsWith("/settings") && user.role !== "admin") {
+      setLocation("/");
+    }
+    
+    // Add any other role-specific redirects here
   }, [user, location, setLocation]);
 
   return (
     <Switch>
+      {/* Dashboard - role-specific display handled by RoleBasedDashboard */}
       <ProtectedRoute path="/" component={RoleBasedDashboard} />
+      
+      {/* Common routes for all authenticated users */}
       <ProtectedRoute path="/shipments" component={Shipments} />
+      <ProtectedRoute path="/tracking" component={Tracking} />
+      <ProtectedRoute path="/payments" component={Finances} />
+      <ProtectedRoute path="/history" component={History} />
+      
+      {/* Role-specific routes */}
       <RoleBasedRoute 
         path="/tasks" 
         roles={["admin", "manager"]} 
         component={Tasks} 
+        fallbackPath="/"
       />
-      <ProtectedRoute path="/finances" component={Finances} />
-      <ProtectedRoute path="/tracking" component={Tracking} />
-      <ProtectedRoute path="/history" component={History} />
-      <AdminRoute path="/users" component={Users} />
+      
+      <RoleBasedRoute 
+        path="/users" 
+        roles={["admin"]} 
+        component={Users}
+        fallbackPath="/"
+      />
+      
+      {/* Authentication and fallbacks */}
       <Route path="/auth" component={AuthPage} />
       <Route component={NotFound} />
     </Switch>
