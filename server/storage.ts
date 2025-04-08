@@ -10,6 +10,9 @@ import {
 import session from "express-session";
 import createMemoryStore from "memorystore";
 import { randomUUID } from 'crypto';
+import { eq } from "drizzle-orm";
+import { db, pool } from "./db";
+import connectPg from "connect-pg-simple";
 
 const MemoryStore = createMemoryStore(session);
 
@@ -594,4 +597,423 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// Database implementation of the storage interface
+export class DatabaseStorage implements IStorage {
+  sessionStore: session.Store;
+  
+  constructor() {
+    // Create a new PostgreSQL session store
+    const PostgresStore = connectPg(session);
+    this.sessionStore = new PostgresStore({
+      pool,
+      tableName: 'session', // Default session table name
+      createTableIfMissing: true // Create the session table if it doesn't exist
+    });
+  }
+
+  // User methods
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user;
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db.insert(users).values(insertUser).returning();
+    return user;
+  }
+
+  async updateUser(id: number, userData: Partial<User>): Promise<User | undefined> {
+    const [updatedUser] = await db
+      .update(users)
+      .set(userData)
+      .where(eq(users.id, id))
+      .returning();
+    return updatedUser;
+  }
+
+  async getUsers(): Promise<User[]> {
+    return await db.select().from(users);
+  }
+
+  // Shipment methods
+  async getShipment(id: number): Promise<Shipment | undefined> {
+    const [shipment] = await db.select().from(shipments).where(eq(shipments.id, id));
+    return shipment;
+  }
+
+  async getShipmentByTrackingId(trackingId: string): Promise<Shipment | undefined> {
+    const [shipment] = await db.select().from(shipments).where(eq(shipments.trackingId, trackingId));
+    return shipment;
+  }
+
+  async createShipment(insertShipment: InsertShipment): Promise<Shipment> {
+    // Generate a unique tracking ID
+    const trackingId = `SH-${Math.floor(Math.random() * 10000000)}`;
+    
+    const [shipment] = await db
+      .insert(shipments)
+      .values({ ...insertShipment, trackingId })
+      .returning();
+    return shipment;
+  }
+
+  async updateShipment(id: number, shipmentData: Partial<Shipment>): Promise<Shipment | undefined> {
+    const now = new Date();
+    const [updatedShipment] = await db
+      .update(shipments)
+      .set({ ...shipmentData, updatedAt: now })
+      .where(eq(shipments.id, id))
+      .returning();
+    return updatedShipment;
+  }
+
+  async getShipments(query?: Partial<Shipment>): Promise<Shipment[]> {
+    if (!query) {
+      return await db.select().from(shipments);
+    }
+    
+    // Build a dynamic query based on the provided filters
+    let queryBuilder = db.select().from(shipments);
+    
+    Object.entries(query).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        queryBuilder = queryBuilder.where(eq(shipments[key as keyof typeof shipments], value));
+      }
+    });
+    
+    return await queryBuilder;
+  }
+
+  async deleteShipment(id: number): Promise<boolean> {
+    const result = await db.delete(shipments).where(eq(shipments.id, id));
+    return result.rowCount > 0;
+  }
+
+  // Payment methods
+  async getPayment(id: number): Promise<Payment | undefined> {
+    const [payment] = await db.select().from(payments).where(eq(payments.id, id));
+    return payment;
+  }
+
+  async createPayment(insertPayment: InsertPayment): Promise<Payment> {
+    const [payment] = await db.insert(payments).values(insertPayment).returning();
+    return payment;
+  }
+
+  async updatePayment(id: number, paymentData: Partial<Payment>): Promise<Payment | undefined> {
+    const [updatedPayment] = await db
+      .update(payments)
+      .set(paymentData)
+      .where(eq(payments.id, id))
+      .returning();
+    return updatedPayment;
+  }
+
+  async getPayments(query?: Partial<Payment>): Promise<Payment[]> {
+    if (!query) {
+      return await db.select().from(payments);
+    }
+    
+    let queryBuilder = db.select().from(payments);
+    
+    Object.entries(query).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        queryBuilder = queryBuilder.where(eq(payments[key as keyof typeof payments], value));
+      }
+    });
+    
+    return await queryBuilder;
+  }
+
+  async deletePayment(id: number): Promise<boolean> {
+    const result = await db.delete(payments).where(eq(payments.id, id));
+    return result.rowCount > 0;
+  }
+
+  // Damage methods
+  async getDamage(id: number): Promise<Damage | undefined> {
+    const [damage] = await db.select().from(damages).where(eq(damages.id, id));
+    return damage;
+  }
+
+  async createDamage(insertDamage: InsertDamage): Promise<Damage> {
+    const [damage] = await db.insert(damages).values(insertDamage).returning();
+    return damage;
+  }
+
+  async updateDamage(id: number, damageData: Partial<Damage>): Promise<Damage | undefined> {
+    const [updatedDamage] = await db
+      .update(damages)
+      .set(damageData)
+      .where(eq(damages.id, id))
+      .returning();
+    return updatedDamage;
+  }
+
+  async getDamages(query?: Partial<Damage>): Promise<Damage[]> {
+    if (!query) {
+      return await db.select().from(damages);
+    }
+    
+    let queryBuilder = db.select().from(damages);
+    
+    Object.entries(query).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        queryBuilder = queryBuilder.where(eq(damages[key as keyof typeof damages], value));
+      }
+    });
+    
+    return await queryBuilder;
+  }
+
+  async deleteDamage(id: number): Promise<boolean> {
+    const result = await db.delete(damages).where(eq(damages.id, id));
+    return result.rowCount > 0;
+  }
+
+  // Complaint methods
+  async getComplaint(id: number): Promise<Complaint | undefined> {
+    const [complaint] = await db.select().from(complaints).where(eq(complaints.id, id));
+    return complaint;
+  }
+
+  async createComplaint(insertComplaint: InsertComplaint): Promise<Complaint> {
+    const [complaint] = await db.insert(complaints).values(insertComplaint).returning();
+    return complaint;
+  }
+
+  async updateComplaint(id: number, complaintData: Partial<Complaint>): Promise<Complaint | undefined> {
+    const now = new Date();
+    const [updatedComplaint] = await db
+      .update(complaints)
+      .set({ ...complaintData, updatedAt: now })
+      .where(eq(complaints.id, id))
+      .returning();
+    return updatedComplaint;
+  }
+
+  async getComplaints(query?: Partial<Complaint>): Promise<Complaint[]> {
+    if (!query) {
+      return await db.select().from(complaints);
+    }
+    
+    let queryBuilder = db.select().from(complaints);
+    
+    Object.entries(query).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        queryBuilder = queryBuilder.where(eq(complaints[key as keyof typeof complaints], value));
+      }
+    });
+    
+    return await queryBuilder;
+  }
+
+  async deleteComplaint(id: number): Promise<boolean> {
+    const result = await db.delete(complaints).where(eq(complaints.id, id));
+    return result.rowCount > 0;
+  }
+
+  // Task methods
+  async getTask(id: number): Promise<Task | undefined> {
+    const [task] = await db.select().from(tasks).where(eq(tasks.id, id));
+    return task;
+  }
+
+  async createTask(insertTask: InsertTask): Promise<Task> {
+    const [task] = await db.insert(tasks).values(insertTask).returning();
+    return task;
+  }
+
+  async updateTask(id: number, taskData: Partial<Task>): Promise<Task | undefined> {
+    const now = new Date();
+    // If the task is being completed, set the completed date
+    let updateData = { ...taskData, updatedAt: now };
+    if (taskData.status === 'completed') {
+      updateData.completedAt = now;
+    }
+    
+    const [updatedTask] = await db
+      .update(tasks)
+      .set(updateData)
+      .where(eq(tasks.id, id))
+      .returning();
+    return updatedTask;
+  }
+
+  async getTasks(query?: Partial<Task>): Promise<Task[]> {
+    if (!query) {
+      return await db.select().from(tasks);
+    }
+    
+    let queryBuilder = db.select().from(tasks);
+    
+    Object.entries(query).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        queryBuilder = queryBuilder.where(eq(tasks[key as keyof typeof tasks], value));
+      }
+    });
+    
+    return await queryBuilder;
+  }
+
+  async deleteTask(id: number): Promise<boolean> {
+    const result = await db.delete(tasks).where(eq(tasks.id, id));
+    return result.rowCount > 0;
+  }
+
+  // Client methods
+  async getClient(id: number): Promise<Client | undefined> {
+    const [client] = await db.select().from(clients).where(eq(clients.id, id));
+    return client;
+  }
+
+  async createClient(insertClient: InsertClient): Promise<Client> {
+    const [client] = await db.insert(clients).values(insertClient).returning();
+    return client;
+  }
+
+  async updateClient(id: number, clientData: Partial<Client>): Promise<Client | undefined> {
+    const [updatedClient] = await db
+      .update(clients)
+      .set(clientData)
+      .where(eq(clients.id, id))
+      .returning();
+    return updatedClient;
+  }
+
+  async getClients(query?: Partial<Client>): Promise<Client[]> {
+    if (!query) {
+      return await db.select().from(clients);
+    }
+    
+    let queryBuilder = db.select().from(clients);
+    
+    Object.entries(query).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        queryBuilder = queryBuilder.where(eq(clients[key as keyof typeof clients], value));
+      }
+    });
+    
+    return await queryBuilder;
+  }
+
+  async deleteClient(id: number): Promise<boolean> {
+    const result = await db.delete(clients).where(eq(clients.id, id));
+    return result.rowCount > 0;
+  }
+
+  // Dashboard stats
+  async getDashboardStats(): Promise<any> {
+    // Get all tasks
+    const tasksList = await db.select().from(tasks);
+    const usersList = await db.select().from(users);
+    
+    // Group tasks by status
+    const pendingTasks = tasksList.filter(t => t.status === 'pending');
+    const inProgressTasks = tasksList.filter(t => t.status === 'in-progress');
+    const completedTasks = tasksList.filter(t => t.status === 'completed');
+    
+    // Calculate task completion rate
+    const totalCompletedTasks = completedTasks.length;
+    const totalTasks = tasksList.length;
+    const completionRate = totalTasks > 0 ? (totalCompletedTasks / totalTasks) * 100 : 0;
+    
+    // Calculate tasks by priority
+    const urgentTasks = tasksList.filter(t => t.priority === 'urgent').length;
+    const highPriorityTasks = tasksList.filter(t => t.priority === 'high').length;
+    const mediumPriorityTasks = tasksList.filter(t => t.priority === 'medium').length;
+    const lowPriorityTasks = tasksList.filter(t => t.priority === 'low').length;
+    
+    // Calculate overdue tasks
+    const now = new Date();
+    const overdueTasks = tasksList.filter(t => {
+      if (!t.dueDate || t.status === 'completed' || t.status === 'cancelled') return false;
+      return new Date(t.dueDate) < now;
+    }).length;
+    
+    // Calculate on-time completion percentage for tasks with due dates
+    const completedTasksWithDueDates = completedTasks.filter(t => t.dueDate && t.completedAt);
+    const onTimeCompletions = completedTasksWithDueDates.filter(t => {
+      if (!t.dueDate || !t.completedAt) return false;
+      return new Date(t.completedAt) <= new Date(t.dueDate);
+    });
+    
+    const onTimePercentage = completedTasksWithDueDates.length > 0 
+      ? (onTimeCompletions.length / completedTasksWithDueDates.length) * 100 
+      : 100;
+    
+    // Group tasks by assignee
+    const tasksByAssignee: Record<number, {
+      total: number;
+      pending: number;
+      inProgress: number;
+      completed: number;
+      user: User | undefined;
+    }> = {};
+    
+    tasksList.forEach(task => {
+      if (task.assignedTo) {
+        if (!tasksByAssignee[task.assignedTo]) {
+          const user = usersList.find(u => u.id === task.assignedTo);
+          tasksByAssignee[task.assignedTo] = {
+            total: 0,
+            pending: 0,
+            inProgress: 0,
+            completed: 0,
+            user
+          };
+        }
+        
+        tasksByAssignee[task.assignedTo].total++;
+        
+        if (task.status === 'pending') {
+          tasksByAssignee[task.assignedTo].pending++;
+        } else if (task.status === 'in-progress') {
+          tasksByAssignee[task.assignedTo].inProgress++;
+        } else if (task.status === 'completed') {
+          tasksByAssignee[task.assignedTo].completed++;
+        }
+      }
+    });
+    
+    // Recent tasks (last 5)
+    const recentTasks = [...tasksList]
+      .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
+      .slice(0, 5);
+    
+    // Pending tasks (first 5)
+    const pendingTasksList = pendingTasks
+      .sort((a, b) => new Date(a.dueDate || 0).getTime() - new Date(b.dueDate || 0).getTime())
+      .slice(0, 5);
+
+    // Return dashboard stats object
+    return {
+      counts: {
+        total: totalTasks,
+        pending: pendingTasks.length,
+        inProgress: inProgressTasks.length,
+        completed: completedTasks.length,
+        overdue: overdueTasks,
+      },
+      completionRate,
+      onTimePercentage,
+      priorities: {
+        urgent: urgentTasks,
+        high: highPriorityTasks,
+        medium: mediumPriorityTasks,
+        low: lowPriorityTasks,
+      },
+      assignees: Object.values(tasksByAssignee),
+      recentTasks,
+      pendingTasks: pendingTasksList,
+    };
+  }
+}
+
+// Initialize storage with the database implementation
+export const storage = new DatabaseStorage();
