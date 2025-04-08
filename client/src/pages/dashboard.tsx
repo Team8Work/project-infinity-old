@@ -1,25 +1,22 @@
 import { useQuery } from "@tanstack/react-query";
 import AppShell from "@/components/layout/app-shell";
 import StatCard from "@/components/dashboard/stat-card";
-import ChartCard from "@/components/dashboard/chart-card";
-import ShipmentTable from "@/components/shipments/shipment-table";
 import TaskList from "@/components/tasks/task-list";
 import CreateTaskModal from "@/components/tasks/create-task-modal";
-import { Loader2 } from "lucide-react";
-import {
-  TruckIcon,
+import { Badge } from "@/components/ui/badge";
+import { 
+  Loader2, 
+  AlertTriangle, 
+  Clock, 
+  Calendar, 
+  Filter, 
   ClipboardCheck,
-  AlertTriangle,
-  Clock,
-  Calendar,
-  DollarSign,
-  CheckCircle,
-  Plus
+  AlertCircle,
+  CheckCircle
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Chart } from "@/components/ui/chart";
 
 // Sample chart data
 const taskCompletionData = [
@@ -129,57 +126,95 @@ export default function Dashboard() {
           />
         </div>
 
-        {/* Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-          <ChartCard title="Task Completion Trends">
-            <div className="h-[220px]">
-              <Chart
-                type="bar"
-                data={taskCompletionData}
-                xDataKey="name"
-                series={[
-                  {
-                    dataKey: "value",
-                    name: "Completed Tasks",
-                    color: "hsl(var(--primary))"
-                  }
-                ]}
-                className="h-full"
-                options={{
-                  grid: true,
-                  legend: false,
-                  tooltip: true,
-                  xAxis: true,
-                  yAxis: true
-                }}
+        {/* Task Management Section - Moved up */}
+        <div className="mt-6">
+          <div className="bg-white rounded-lg border border-border shadow-sm">
+            <div className="p-5 border-b border-border flex justify-between items-center">
+              <h3 className="font-semibold">Task Management</h3>
+              <CreateTaskModal 
+                triggerElement={
+                  <Button size="sm" className="bg-primary text-white">
+                    <svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      width="16" 
+                      height="16" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeWidth="2" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      className="mr-1"
+                    >
+                      <line x1="12" y1="5" x2="12" y2="19"></line>
+                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    New Task
+                  </Button>
+                }
               />
             </div>
-          </ChartCard>
-          <ChartCard title="Task Distribution by Type">
-            <div className="h-[220px]">
-              <Chart
-                type="line"
-                data={taskCategoryData}
-                xDataKey="name"
-                series={[
-                  {
-                    dataKey: "value",
-                    name: "Tasks Count",
-                    color: "hsl(var(--secondary))"
-                  }
-                ]}
-                className="h-full"
-                options={{
-                  grid: true,
-                  legend: false,
-                  tooltip: true,
-                  xAxis: true,
-                  yAxis: true,
-                  formatter: (value: number) => `${value.toLocaleString()}`
-                }}
-              />
+            <div className="p-5">
+              {/* Task Status Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-5">
+                <div className="bg-primary/5 rounded-lg p-4 border border-primary/20">
+                  <div className="flex justify-between items-start">
+                    <h4 className="font-medium text-sm text-primary">Pending</h4>
+                    <span className="bg-primary/10 text-primary text-xs font-semibold px-2 py-0.5 rounded-full">{stats?.tasks?.pending || 0}</span>
+                  </div>
+                  <div className="mt-1 text-xs text-muted-foreground">Tasks waiting to be started</div>
+                </div>
+                
+                <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                  <div className="flex justify-between items-start">
+                    <h4 className="font-medium text-sm text-blue-600">In Progress</h4>
+                    <span className="bg-blue-100 text-blue-600 text-xs font-semibold px-2 py-0.5 rounded-full">{stats?.tasks?.inProgress || 0}</span>
+                  </div>
+                  <div className="mt-1 text-xs text-muted-foreground">Tasks currently in progress</div>
+                </div>
+                
+                <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+                  <div className="flex justify-between items-start">
+                    <h4 className="font-medium text-sm text-green-600">Completed</h4>
+                    <span className="bg-green-100 text-green-600 text-xs font-semibold px-2 py-0.5 rounded-full">{stats?.tasks?.completed || 0}</span>
+                  </div>
+                  <div className="mt-1 text-xs text-muted-foreground">Tasks successfully completed</div>
+                </div>
+                
+                <div className="bg-red-50 rounded-lg p-4 border border-red-200">
+                  <div className="flex justify-between items-start">
+                    <h4 className="font-medium text-sm text-red-600">Overdue</h4>
+                    <span className="bg-red-100 text-red-600 text-xs font-semibold px-2 py-0.5 rounded-full">{stats?.tasks?.overdue || 0}</span>
+                  </div>
+                  <div className="mt-1 text-xs text-muted-foreground">Tasks past their due date</div>
+                </div>
+              </div>
+              
+              {/* Task Filters */}
+              <div className="flex space-x-2 mb-4 overflow-x-auto">
+                <Button variant="default" size="sm" className="rounded-full text-xs">
+                  All Tasks
+                </Button>
+                <Button variant="outline" size="sm" className="rounded-full text-xs">
+                  Shipment
+                </Button>
+                <Button variant="outline" size="sm" className="rounded-full text-xs">
+                  Payment
+                </Button>
+                <Button variant="outline" size="sm" className="rounded-full text-xs">
+                  Damage
+                </Button>
+                <Button variant="outline" size="sm" className="rounded-full text-xs">
+                  Complaint
+                </Button>
+              </div>
+
+              <TaskList tasks={stats?.pendingTasks || []} />
             </div>
-          </ChartCard>
+            <div className="p-4 border-t border-border text-center">
+              <Button variant="link">View All Tasks</Button>
+            </div>
+          </div>
         </div>
 
         {/* Recent Tasks */}
@@ -225,129 +260,70 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Task Management and Map */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+        {/* Recent Shipments Section */}
+        <div className="mt-6">
           <div className="bg-white rounded-lg border border-border shadow-sm">
             <div className="p-5 border-b border-border flex justify-between items-center">
-              <h3 className="font-semibold">Task Management</h3>
-              <CreateTaskModal 
-                triggerElement={
-                  <Button size="sm" className="bg-primary text-white">
-                    <svg 
-                      xmlns="http://www.w3.org/2000/svg" 
-                      width="16" 
-                      height="16" 
-                      viewBox="0 0 24 24" 
-                      fill="none" 
-                      stroke="currentColor" 
-                      strokeWidth="2" 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round" 
-                      className="mr-1"
-                    >
-                      <line x1="12" y1="5" x2="12" y2="19"></line>
-                      <line x1="5" y1="12" x2="19" y2="12"></line>
-                    </svg>
-                    New Task
-                  </Button>
-                }
-              />
-            </div>
-            <div className="p-5">
-              {/* Task Filters */}
-              <div className="flex space-x-2 mb-4 overflow-x-auto">
-                <Button variant="default" size="sm" className="rounded-full text-xs">
-                  All Tasks
-                </Button>
-                <Button variant="outline" size="sm" className="rounded-full text-xs">
-                  Shipment
-                </Button>
-                <Button variant="outline" size="sm" className="rounded-full text-xs">
-                  Payment
-                </Button>
-                <Button variant="outline" size="sm" className="rounded-full text-xs">
-                  Damage
-                </Button>
-                <Button variant="outline" size="sm" className="rounded-full text-xs">
-                  Complaint
-                </Button>
-              </div>
-
-              <TaskList tasks={stats?.pendingTasks || []} />
-            </div>
-            <div className="p-4 border-t border-border text-center">
-              <Button variant="link">View All Tasks</Button>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg border border-border shadow-sm">
-            <div className="p-5 border-b border-border flex justify-between items-center">
-              <h3 className="font-semibold">Task Distribution by Team</h3>
-              <div className="flex space-x-2">
+              <h3 className="font-semibold">Recent Shipments</h3>
+              <div className="flex space-x-2 items-center">
                 <Button variant="outline" size="sm">
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    width="16" 
-                    height="16" 
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    strokeWidth="2" 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    className="mr-1"
-                  >
-                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                  </svg>
+                  <Filter className="h-4 w-4 mr-1" />
                   Filter
                 </Button>
-                <Button variant="outline" size="sm" className="p-2">
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    width="16" 
-                    height="16" 
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    strokeWidth="2" 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                  >
-                    <path d="M15 3h6v6"></path>
-                    <path d="M10 14L21 3"></path>
-                    <path d="M9 21H3v-6"></path>
-                    <path d="M3 3l6 6"></path>
-                  </svg>
+                <Button variant="outline" size="sm" className="text-primary border-primary hover:bg-primary hover:text-white">
+                  View All
                 </Button>
               </div>
             </div>
             <div className="p-5">
-              <div className="h-60 bg-gray-100 rounded-md relative overflow-hidden">
-                <div className="absolute inset-0 flex items-center justify-center text-neutral-light">
-                  <div className="text-center">
-                    <svg 
-                      xmlns="http://www.w3.org/2000/svg" 
-                      width="36" 
-                      height="36" 
-                      viewBox="0 0 24 24" 
-                      fill="none" 
-                      stroke="currentColor" 
-                      strokeWidth="2" 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round" 
-                      className="mx-auto mb-2"
-                    >
-                      <rect x="18" y="3" width="4" height="18"></rect>
-                      <rect x="10" y="8" width="4" height="13"></rect>
-                      <rect x="2" y="13" width="4" height="8"></rect>
-                    </svg>
-                    <p className="text-sm">Task distribution by team<br />and completion metrics</p>
-                    <Button size="sm" className="mt-2">
-                      View Analytics
-                    </Button>
-                  </div>
+              {stats?.recentShipments && stats.recentShipments.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="bg-muted/50">
+                        <th className="text-left p-3 font-medium">Tracking ID</th>
+                        <th className="text-left p-3 font-medium">Origin</th>
+                        <th className="text-left p-3 font-medium">Destination</th>
+                        <th className="text-left p-3 font-medium">Status</th>
+                        <th className="text-left p-3 font-medium">Due Date</th>
+                        <th className="text-right p-3 font-medium">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y">
+                      {stats.recentShipments.map((shipment: any) => (
+                        <tr key={shipment.id} className="hover:bg-muted/50">
+                          <td className="p-3">{shipment.trackingId}</td>
+                          <td className="p-3">{shipment.origin}</td>
+                          <td className="p-3">{shipment.destination}</td>
+                          <td className="p-3">
+                            <Badge variant={
+                              shipment.status === 'delivered' ? 'outline' : 
+                              shipment.status === 'delayed' ? 'destructive' : 
+                              'default'
+                            }>
+                              {shipment.status}
+                            </Badge>
+                          </td>
+                          <td className="p-3">
+                            {shipment.dueDate ? new Date(shipment.dueDate).toLocaleDateString() : 'N/A'}
+                          </td>
+                          <td className="p-3 text-right">
+                            <Button variant="outline" size="sm">View</Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
-              </div>
+              ) : (
+                <div className="text-center p-8">
+                  <div className="mb-2">
+                    <AlertCircle className="h-12 w-12 mx-auto text-muted-foreground opacity-50" />
+                  </div>
+                  <h3 className="text-lg font-medium mb-1">No recent shipments</h3>
+                  <p className="text-muted-foreground mb-4">Recent shipments will appear here when created</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
