@@ -16,12 +16,15 @@ import {
   CheckCircle,
   User,
   UserRound,
-  ShieldCheck
+  ShieldCheck,
+  RefreshCw
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/use-auth";
+import { useToast } from "@/hooks/use-toast";
+import { useAutoRefresh, refreshQueries } from "@/hooks/use-auto-refresh";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,7 +36,27 @@ export default function Dashboard() {
   const [dateRange, setDateRange] = useState("last30days");
   const [activeTaskType, setActiveTaskType] = useState<string | null>(null);
   const [devRole, setDevRole] = useState<string | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const { user } = useAuth();
+  const { toast } = useToast();
+  
+  // Set up auto-refresh for dashboard data
+  useAutoRefresh(["/api/dashboard/stats", "/api/tasks"], 10000);
+
+  // Manual refresh handler
+  const handleManualRefresh = () => {
+    setIsRefreshing(true);
+    refreshQueries(["/api/dashboard/stats", "/api/tasks"]);
+    
+    // Show toast and reset refreshing state after a short delay
+    setTimeout(() => {
+      setIsRefreshing(false);
+      toast({
+        title: "Dashboard refreshed",
+        description: "Latest data has been loaded"
+      });
+    }, 500);
+  };
 
   const { data: stats, isLoading, error } = useQuery({
     queryKey: ["/api/dashboard/stats"],
@@ -89,6 +112,16 @@ export default function Dashboard() {
         <div className="flex justify-between">
           <h2 className="text-lg font-semibold">Summary Statistics</h2>
           <div className="flex space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex items-center"
+              onClick={handleManualRefresh}
+              disabled={isRefreshing}
+            >
+              <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+              {isRefreshing ? 'Refreshing...' : 'Refresh'}
+            </Button>
             <Button
               variant="outline"
               size="sm"
