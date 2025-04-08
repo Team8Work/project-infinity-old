@@ -18,25 +18,6 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-// Sample chart data
-const taskCompletionData = [
-  { name: "Jan", value: 65 },
-  { name: "Feb", value: 59 },
-  { name: "Mar", value: 80 },
-  { name: "Apr", value: 81 },
-  { name: "May", value: 56 },
-  { name: "Jun", value: 90 },
-];
-
-const taskCategoryData = [
-  { name: "Jan", value: 31000 },
-  { name: "Feb", value: 40000 },
-  { name: "Mar", value: 28000 },
-  { name: "Apr", value: 51000 },
-  { name: "May", value: 42000 },
-  { name: "Jun", value: 82000 },
-];
-
 export default function Dashboard() {
   const [dateRange, setDateRange] = useState("last30days");
 
@@ -66,6 +47,28 @@ export default function Dashboard() {
     );
   }
 
+  // Calculate month-over-month changes using real data (if available)
+  // For now, we'll use static values until we implement historical data tracking
+  const totalChange = {
+    value: 0,
+    positive: true
+  };
+  
+  const pendingChange = {
+    value: 0,
+    positive: false
+  };
+  
+  const completedChange = {
+    value: 0,
+    positive: true
+  };
+  
+  const rateChange = {
+    value: 0,
+    positive: true
+  };
+
   return (
     <AppShell>
       <div className="px-6 py-4">
@@ -90,37 +93,37 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
           <StatCard
             title="Total Tasks"
-            value={stats?.tasks?.total || 0}
-            change={5.2}
+            value={stats?.counts?.total || 0}
+            change={totalChange.value}
             changeText="from last month"
-            positive={true}
+            positive={totalChange.positive}
             icon={<ClipboardCheck />}
             className="bg-primary/10 text-primary"
           />
           <StatCard
             title="Pending Tasks"
-            value={stats?.tasks?.pending || 0}
-            change={2.5}
+            value={stats?.counts?.pending || 0}
+            change={pendingChange.value}
             changeText="from last month"
-            positive={false}
+            positive={pendingChange.positive}
             icon={<Clock />}
             className="bg-warning/10 text-warning"
           />
           <StatCard
             title="Completed Tasks"
-            value={stats?.tasks?.completed || 0}
-            change={3.1}
+            value={stats?.counts?.completed || 0}
+            change={completedChange.value}
             changeText="improvement"
-            positive={true}
+            positive={completedChange.positive}
             icon={<ClipboardCheck />}
             className="bg-success/10 text-success"
           />
           <StatCard
             title="Completion Rate"
-            value={`${stats?.tasks?.completionRate || 0}%`}
-            change={1.8}
+            value={`${Math.round(stats?.completionRate || 0)}%`}
+            change={rateChange.value}
             changeText="from last month"
-            positive={true}
+            positive={rateChange.positive}
             icon={<Clock />}
             className="bg-secondary/10 text-secondary"
           />
@@ -160,7 +163,7 @@ export default function Dashboard() {
                 <div className="bg-primary/5 rounded-lg p-4 border border-primary/20">
                   <div className="flex justify-between items-start">
                     <h4 className="font-medium text-sm text-primary">Pending</h4>
-                    <span className="bg-primary/10 text-primary text-xs font-semibold px-2 py-0.5 rounded-full">{stats?.tasks?.pending || 0}</span>
+                    <span className="bg-primary/10 text-primary text-xs font-semibold px-2 py-0.5 rounded-full">{stats?.counts?.pending || 0}</span>
                   </div>
                   <div className="mt-1 text-xs text-muted-foreground">Tasks waiting to be started</div>
                 </div>
@@ -168,7 +171,7 @@ export default function Dashboard() {
                 <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
                   <div className="flex justify-between items-start">
                     <h4 className="font-medium text-sm text-blue-600">In Progress</h4>
-                    <span className="bg-blue-100 text-blue-600 text-xs font-semibold px-2 py-0.5 rounded-full">{stats?.tasks?.inProgress || 0}</span>
+                    <span className="bg-blue-100 text-blue-600 text-xs font-semibold px-2 py-0.5 rounded-full">{stats?.counts?.inProgress || 0}</span>
                   </div>
                   <div className="mt-1 text-xs text-muted-foreground">Tasks currently in progress</div>
                 </div>
@@ -176,7 +179,7 @@ export default function Dashboard() {
                 <div className="bg-green-50 rounded-lg p-4 border border-green-200">
                   <div className="flex justify-between items-start">
                     <h4 className="font-medium text-sm text-green-600">Completed</h4>
-                    <span className="bg-green-100 text-green-600 text-xs font-semibold px-2 py-0.5 rounded-full">{stats?.tasks?.completed || 0}</span>
+                    <span className="bg-green-100 text-green-600 text-xs font-semibold px-2 py-0.5 rounded-full">{stats?.counts?.completed || 0}</span>
                   </div>
                   <div className="mt-1 text-xs text-muted-foreground">Tasks successfully completed</div>
                 </div>
@@ -184,7 +187,7 @@ export default function Dashboard() {
                 <div className="bg-red-50 rounded-lg p-4 border border-red-200">
                   <div className="flex justify-between items-start">
                     <h4 className="font-medium text-sm text-red-600">Overdue</h4>
-                    <span className="bg-red-100 text-red-600 text-xs font-semibold px-2 py-0.5 rounded-full">{stats?.tasks?.overdue || 0}</span>
+                    <span className="bg-red-100 text-red-600 text-xs font-semibold px-2 py-0.5 rounded-full">{stats?.counts?.overdue || 0}</span>
                   </div>
                   <div className="mt-1 text-xs text-muted-foreground">Tasks past their due date</div>
                 </div>
