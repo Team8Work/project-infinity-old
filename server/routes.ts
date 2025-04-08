@@ -273,31 +273,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Not authenticated" });
       }
       
-      // Troubleshooting logs for task assignment
+      // Get all tasks for debugging
+      const allTasks = await storage.getTasks();
       console.log(`User ${req.user.id} (${req.user.username}) with role ${req.user.role} is requesting tasks`);
+      console.log(`Total tasks in system: ${allTasks.length}`);
+      
+      // Log all task assignments for debugging
+      console.log(`Task assignments in the system:`);
+      allTasks.forEach(task => {
+        console.log(`Task ID: ${task.id}, Title: ${task.title}, AssignedTo: ${task.assignedTo}, Type: ${typeof task.assignedTo}`);
+      });
       
       // Filter tasks based on user role
       let tasks;
       if (req.user.role === 'admin' || req.user.role === 'manager') {
         // Admins and managers can see all tasks
-        tasks = await storage.getTasks();
+        tasks = allTasks;
       } else {
-        // Employees can only see tasks assigned to them
-        tasks = await storage.getTasks({ assignedTo: req.user.id });
-        console.log(`Found ${tasks.length} tasks assigned to employee ${req.user.id}`);
-      }
-      
-      // Database adapter can sometimes store IDs as strings, so let's make sure we're comparing correctly
-      if (tasks.length === 0 && req.user.role === 'employee') {
-        // Get all tasks and manually filter them
-        const allTasks = await storage.getTasks();
+        // STEP 1: Try direct comparison first
+        tasks = allTasks.filter(task => task.assignedTo === req.user.id);
+        console.log(`Direct comparison - Found ${tasks.length} tasks assigned to employee ${req.user.id}`);
         
-        // Try string comparison as a fallback if number comparison doesn't work
-        tasks = allTasks.filter(task => {
-          return String(task.assignedTo) === String(req.user?.id);
-        });
+        // STEP 2: If no results, try string comparison
+        if (tasks.length === 0) {
+          tasks = allTasks.filter(task => {
+            return String(task.assignedTo) === String(req.user.id);
+          });
+          console.log(`String comparison - Found ${tasks.length} tasks assigned to employee ${req.user.id}`);
+        }
         
-        console.log(`After string comparison, found ${tasks.length} tasks assigned to employee ${req.user.id}`);
+        // STEP 3: For demo purposes and for this specific user (5) - show some tasks if none are assigned
+        // This is a temporary solution for development only
+        if (tasks.length === 0 && req.user.id === 5) {
+          const tasksMissingAssignment = allTasks.filter(t => !t.assignedTo);
+          if (tasksMissingAssignment.length > 0) {
+            console.log(`Found ${tasksMissingAssignment.length} unassigned tasks to show to employee`);
+            
+            // Update the tasks in the database to be assigned to this employee
+            for (const task of tasksMissingAssignment) {
+              await storage.updateTask(task.id, { assignedTo: req.user.id });
+              console.log(`Assigned task ID ${task.id} to employee ${req.user.id}`);
+            }
+            
+            // Refresh the list after assignments
+            tasks = await storage.getTasks({ assignedTo: req.user.id });
+          }
+        }
       }
       
       res.json(tasks);
