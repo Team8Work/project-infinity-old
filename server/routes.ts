@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth, checkRole } from "./auth";
+import { setupAuth, checkRole, hashPassword } from "./auth";
 import { z } from "zod";
 import {
   insertShipmentSchema,
@@ -9,7 +9,8 @@ import {
   insertDamageSchema,
   insertComplaintSchema,
   insertTaskSchema,
-  insertClientSchema
+  insertClientSchema,
+  insertUserSchema
 } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -420,6 +421,122 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (err instanceof z.ZodError) {
         return res.status(400).json({ message: err.errors });
       }
+      next(err);
+    }
+  });
+
+  // User Management Routes (Admin only)
+  app.get("/api/users/:id", checkRole(["admin"]), async (req, res, next) => {
+    try {
+      const id = parseInt(req.params.id);
+      const user = await storage.getUser(id);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Don't send password back to client
+      const { password, ...userWithoutPassword } = user;
+      res.json(userWithoutPassword);
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  // Create user (admin only)
+  app.post("/api/users", checkRole(["admin"]), async (req, res, next) => {
+    try {
+      const existingUser = await storage.getUserByUsername(req.body.username);
+      if (existingUser) {
+        return res.status(400).json({ message: "Username already exists" });
+      }
+
+      // Validate the input data
+      const validatedData = insertUserSchema.parse(req.body);
+      
+      // Hash the password before storing
+      const hashedPassword = await hashPassword(validatedData.password);
+      
+      const user = await storage.createUser({
+        ...validatedData,
+        password: hashedPassword
+      });
+
+      // Don't send password back to client
+      const { password, ...userWithoutPassword } = user;
+      res.status(201).json(userWithoutPassword);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: err.errors });
+      }
+      next(err);
+    }
+  });
+
+  // Update user (admin only)
+  app.put("/api/users/:id", checkRole(["admin"]), async (req, res, next) => {
+    try {
+      const id = parseInt(req.params.id);
+      const user = await storage.getUser(id);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Make sure password is hashed if it's being updated
+      let userData = { ...req.body };
+      if (userData.password) {
+        userData.password = await hashPassword(userData.password);
+      }
+      
+      // Validate partial data
+      const validatedData = insertUserSchema.partial().parse(userData);
+      const updatedUser = await storage.updateUser(id, validatedData);
+      
+      if (!updatedUser) {
+        return res.status(500).json({ message: "Failed to update user" });
+      }
+      
+      // Don't send password back to client
+      const { password, ...userWithoutPassword } = updatedUser;
+      res.json(userWithoutPassword);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: err.errors });
+      }
+      next(err);
+    }
+  });
+
+  // Delete user (admin only)
+  app.delete("/api/users/:id", checkRole(["admin"]), async (req, res, next) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      // Don't allow admin to delete themselves
+      if (id === req.user?.id) {
+        return res.status(400).json({ message: "Cannot delete your own account" });
+      }
+      
+      const user = await storage.getUser(id);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Check if user is also an admin - only admins can delete admins
+      if (user.role === 'admin' && req.user?.role !== 'admin') {
+        return res.status(403).json({ message: "Only admins can delete admin accounts" });
+      }
+      
+      const success = await storage.deleteUser(id);
+      
+      if (!success) {
+        return res.status(500).json({ message: "Failed to delete user" });
+      }
+      
+      res.status(204).send();
+    } catch (err) {
       next(err);
     }
   });
