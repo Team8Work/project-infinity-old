@@ -14,10 +14,12 @@ import {
 import { cn } from "@/lib/utils";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/use-auth";
+import { useToast } from "@/hooks/use-toast";
+import { useAutoRefresh, refreshQueries } from "@/hooks/use-auto-refresh";
 
 // Task type badge styles
 const taskTypeStyles = {
@@ -54,17 +56,40 @@ interface TaskListProps {
 
 export default function TaskList({ tasks, taskType, compact = false }: TaskListProps) {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  
+  // Setup automatic data refreshing
+  useAutoRefresh(["/api/tasks", "/api/dashboard/stats"], 5000);
   
   const updateTaskMutation = useMutation({
     mutationFn: async ({ id, status }: { id: number; status: string }) => {
       const res = await apiRequest("PUT", `/api/tasks/${id}`, { status });
       return await res.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/tasks"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/stats"] });
+    onSuccess: (data) => {
+      // Immediately refresh data
+      refreshQueries(["/api/tasks", "/api/dashboard/stats"]);
+      
+      // Show success toast based on status
+      const statusMessages = {
+        'completed': "Task marked as completed",
+        'in-progress': "Task started",
+        'pending': "Task reopened"
+      };
+      
+      toast({
+        title: statusMessages[data.status as keyof typeof statusMessages] || "Task updated",
+        description: `Task #${data.id} has been updated`,
+      });
     },
+    onError: (error) => {
+      toast({
+        title: "Error updating task",
+        description: error instanceof Error ? error.message : "An unknown error occurred",
+        variant: "destructive",
+      });
+    }
   });
 
   // Filter tasks by type if taskType is provided
