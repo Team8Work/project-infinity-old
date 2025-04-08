@@ -7,17 +7,20 @@ import TaskList from "@/components/tasks/task-list";
 import { Loader2 } from "lucide-react";
 import {
   TruckIcon,
-  DollarSign,
+  ClipboardCheck,
   AlertTriangle,
   Clock,
-  Calendar
+  Calendar,
+  DollarSign,
+  CheckCircle
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Chart } from "@/components/ui/chart";
 
 // Sample chart data
-const shipmentVolumeData = [
+const taskCompletionData = [
   { name: "Jan", value: 65 },
   { name: "Feb", value: 59 },
   { name: "Mar", value: 80 },
@@ -26,7 +29,7 @@ const shipmentVolumeData = [
   { name: "Jun", value: 90 },
 ];
 
-const revenueData = [
+const taskCategoryData = [
   { name: "Jan", value: 31000 },
   { name: "Feb", value: 40000 },
   { name: "Mar", value: 28000 },
@@ -87,35 +90,35 @@ export default function Dashboard() {
         {/* Stat Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
           <StatCard
-            title="Active Shipments"
-            value={stats?.activeShipments || 0}
-            change={8.2}
+            title="Total Tasks"
+            value={stats?.tasks?.total || 0}
+            change={5.2}
             changeText="from last month"
             positive={true}
-            icon={<TruckIcon />}
+            icon={<ClipboardCheck />}
             className="bg-primary/10 text-primary"
           />
           <StatCard
-            title="Pending Payments"
-            value={`$${(stats?.pendingPayments || 0).toLocaleString()}`}
+            title="Pending Tasks"
+            value={stats?.tasks?.pending || 0}
             change={2.5}
             changeText="from last month"
             positive={false}
-            icon={<DollarSign />}
+            icon={<Clock />}
             className="bg-warning/10 text-warning"
           />
           <StatCard
-            title="Damage Reports"
-            value={stats?.damageReports || 0}
+            title="Completed Tasks"
+            value={stats?.tasks?.completed || 0}
             change={3.1}
             changeText="improvement"
             positive={true}
-            icon={<AlertTriangle />}
-            className="bg-danger/10 text-danger"
+            icon={<ClipboardCheck />}
+            className="bg-success/10 text-success"
           />
           <StatCard
-            title="On-Time Delivery"
-            value={`${stats?.onTimeDelivery || 0}%`}
+            title="Completion Rate"
+            value={`${stats?.tasks?.completionRate || 0}%`}
             change={1.8}
             changeText="from last month"
             positive={true}
@@ -126,60 +129,40 @@ export default function Dashboard() {
 
         {/* Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-          <ChartCard title="Shipment Volume">
+          <ChartCard title="Task Completion Trends">
             <div className="h-[300px]">
-              <div className="h-full w-full">
-                <div className="chart-container h-full">
-                  <div className="h-full w-full">
-                    <div className="h-full">
-                      <div className="h-full">
-                        <div className="h-full">
-                          <div className="h-full">
-                            <div className="h-full">
-                              <div className="h-full">
-                                <div className="h-full">
-                                  <chart.Chart
-                                    type="bar"
-                                    data={shipmentVolumeData}
-                                    xDataKey="name"
-                                    series={[
-                                      {
-                                        dataKey: "value",
-                                        name: "Shipments",
-                                        color: "hsl(var(--primary))"
-                                      }
-                                    ]}
-                                    className="h-full"
-                                    options={{
-                                      grid: true,
-                                      legend: false,
-                                      tooltip: true,
-                                      xAxis: true,
-                                      yAxis: true
-                                    }}
-                                  />
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </ChartCard>
-          <ChartCard title="Revenue Trends">
-            <div className="h-[300px]">
-              <chart.Chart
-                type="line"
-                data={revenueData}
+              <Chart
+                type="bar"
+                data={taskCompletionData}
                 xDataKey="name"
                 series={[
                   {
                     dataKey: "value",
-                    name: "Revenue",
+                    name: "Completed Tasks",
+                    color: "hsl(var(--primary))"
+                  }
+                ]}
+                className="h-full"
+                options={{
+                  grid: true,
+                  legend: false,
+                  tooltip: true,
+                  xAxis: true,
+                  yAxis: true
+                }}
+              />
+            </div>
+          </ChartCard>
+          <ChartCard title="Task Distribution by Type">
+            <div className="h-[300px]">
+              <Chart
+                type="line"
+                data={taskCategoryData}
+                xDataKey="name"
+                series={[
+                  {
+                    dataKey: "value",
+                    name: "Tasks Count",
                     color: "hsl(var(--secondary))"
                   }
                 ]}
@@ -190,22 +173,22 @@ export default function Dashboard() {
                   tooltip: true,
                   xAxis: true,
                   yAxis: true,
-                  formatter: (value) => `$${value.toLocaleString()}`
+                  formatter: (value: number) => `${value.toLocaleString()}`
                 }}
               />
             </div>
           </ChartCard>
         </div>
 
-        {/* Recent Shipments */}
+        {/* Recent Tasks */}
         <div className="mt-6">
           <div className="bg-white rounded-lg border border-border shadow-sm">
             <div className="p-5 border-b border-border flex justify-between items-center">
-              <h3 className="font-semibold">Recent Shipments</h3>
+              <h3 className="font-semibold">Recent Tasks</h3>
               <div className="flex space-x-2 items-center">
                 <div className="relative">
                   <Input 
-                    placeholder="Filter shipments..." 
+                    placeholder="Filter tasks..." 
                     className="pl-9 h-9 text-sm" 
                   />
                   <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-light">
@@ -234,10 +217,9 @@ export default function Dashboard() {
                 </Button>
               </div>
             </div>
-            <ShipmentTable
-              shipments={stats?.recentShipments || []}
-              isLoading={isLoading}
-            />
+            <div className="p-5">
+              <TaskList tasks={stats?.recentTasks || []} />
+            </div>
           </div>
         </div>
 
@@ -294,7 +276,7 @@ export default function Dashboard() {
 
           <div className="bg-white rounded-lg border border-border shadow-sm">
             <div className="p-5 border-b border-border flex justify-between items-center">
-              <h3 className="font-semibold">Active Shipment Map</h3>
+              <h3 className="font-semibold">Task Distribution by Team</h3>
               <div className="flex space-x-2">
                 <Button variant="outline" size="sm">
                   <svg 
@@ -333,7 +315,7 @@ export default function Dashboard() {
                 </Button>
               </div>
             </div>
-            <div className="p-2">
+            <div className="p-5">
               <div className="h-80 bg-gray-100 rounded-md relative overflow-hidden">
                 <div className="absolute inset-0 flex items-center justify-center text-neutral-light">
                   <div className="text-center">
@@ -349,13 +331,13 @@ export default function Dashboard() {
                       strokeLinejoin="round" 
                       className="mx-auto mb-3"
                     >
-                      <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"></polygon>
-                      <line x1="9" y1="3" x2="9" y2="18"></line>
-                      <line x1="15" y1="6" x2="15" y2="21"></line>
+                      <rect x="18" y="3" width="4" height="18"></rect>
+                      <rect x="10" y="8" width="4" height="13"></rect>
+                      <rect x="2" y="13" width="4" height="8"></rect>
                     </svg>
-                    <p>Interactive logistics map showing<br />global shipment routes</p>
+                    <p>Task distribution by team<br />and completion metrics</p>
                     <Button className="mt-3">
-                      Load Map View
+                      View Detailed Analytics
                     </Button>
                   </div>
                 </div>
