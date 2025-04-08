@@ -127,6 +127,7 @@ export const insertTaskSchema = createInsertSchema(tasks)
     type: z.enum(["shipment", "payment", "damage", "complaint", "report", "client", "general"]).default("general"),
     status: z.enum(["pending", "in-progress", "completed", "cancelled"]).default("pending"),
     priority: z.enum(["low", "medium", "high", "urgent"]).default("medium"),
+    dueDate: z.string().nullable().optional().transform(val => val ? new Date(val) : null),
   });
 
 // Clients

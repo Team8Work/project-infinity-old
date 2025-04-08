@@ -106,7 +106,8 @@ export default function CreateTaskModal({
         assignedTo: data.assignedTo ? parseInt(data.assignedTo) : null,
         assignedBy: user?.id,
         relatedId: data.relatedId ? parseInt(data.relatedId) : null,
-        // The date object will be automatically serialized to ISO string during JSON.stringify
+        // Convert Date object to ISO string format
+        dueDate: data.dueDate ? new Date(data.dueDate).toISOString() : null,
       };
       
       const res = await apiRequest("POST", "/api/tasks", transformedData);
