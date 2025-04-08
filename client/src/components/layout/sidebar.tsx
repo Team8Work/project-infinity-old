@@ -1,5 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { 
+  AlertCircle,
   BarChart, 
   Truck, 
   CreditCard, 
@@ -31,12 +32,12 @@ const SidebarLink = ({ href, icon, children, active, onClick }: SidebarLinkProps
       <button
         onClick={onClick}
         className={cn(
-          "flex items-center space-x-1.5 px-3 py-1 text-neutral-light hover:bg-background w-full text-left transition-colors",
+          "flex items-center space-x-2 px-3 py-2 text-neutral-light hover:bg-background w-full text-left transition-colors",
           active && "bg-primary/5 text-primary border-l-2 border-primary font-medium"
         )}
       >
-        <span className="w-4 text-center">{icon}</span>
-        <span className="text-[10px]">{children}</span>
+        <span className="w-5 text-center">{icon}</span>
+        <span className="text-xs font-medium">{children}</span>
       </button>
     </Link>
   );
@@ -69,16 +70,16 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
   return (
     <aside className={cn(
       "bg-white border-r border-border-color transition-all flex flex-col h-full",
-      collapsed ? "w-16" : "w-52" // Reduced width from w-20/w-64 to w-16/w-52
+      collapsed ? "w-16" : "w-48" // Adjusted width
     )}>
       {/* Logo Area */}
-      <div className="pt-3 px-3 border-b border-border-color pb-2">
+      <div className="pt-4 px-3 border-b border-border-color pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center">
-            <div className="w-6 h-6 bg-primary rounded-md flex items-center justify-center text-white font-bold">
-              <Truck size={14} />
+            <div className="w-8 h-8 bg-primary rounded-md flex items-center justify-center text-white font-bold">
+              <Truck size={18} />
             </div>
-            {!collapsed && <span className="ml-2 font-semibold text-[11px]">Task Manager</span>}
+            {!collapsed && <span className="ml-2 font-semibold text-sm">Task Manager</span>}
           </div>
           <button 
             onClick={onToggle}
@@ -86,8 +87,8 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
           >
             <svg 
               xmlns="http://www.w3.org/2000/svg" 
-              width="12" 
-              height="12" 
+              width="14" 
+              height="14" 
               viewBox="0 0 24 24" 
               fill="none" 
               stroke="currentColor" 
@@ -105,16 +106,16 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
 
       {/* User Info */}
       {!collapsed && (
-        <div className="py-2 px-3 border-b border-border-color">
-          <div className="flex items-center space-x-1.5">
-            <div className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center font-semibold text-[10px]">
+        <div className="py-3 px-3 border-b border-border-color">
+          <div className="flex items-center space-x-2">
+            <div className="w-7 h-7 rounded-full bg-primary text-white flex items-center justify-center font-semibold text-xs">
               {getInitials()}
             </div>
             <div>
-              <div className="font-medium text-[10px]">{user?.fullName}</div>
-              <div className="text-[10px] flex items-center">
+              <div className="font-medium text-xs">{user?.fullName}</div>
+              <div className="text-xs flex items-center mt-0.5">
                 <span className={cn(
-                  "text-white text-[8px] px-1 py-0.5 rounded-full",
+                  "text-white text-[9px] px-1.5 py-0.5 rounded-full",
                   user?.role === "admin" && "bg-primary",
                   user?.role === "manager" && "bg-secondary",
                   user?.role === "employee" && "bg-blue-500"
@@ -130,13 +131,13 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
       {/* Navigation Menu */}
       <nav className="flex-1 overflow-y-auto py-2">
         <ul>
-          <li className={cn("px-3 py-0.5 text-[10px] text-neutral-light font-medium", collapsed && "text-center")}>
+          <li className={cn("px-3 py-1 text-xs text-neutral-light font-semibold tracking-wide", collapsed && "text-center")}>
             {!collapsed ? "NAVIGATION" : "-"}
           </li>
           <li>
             <SidebarLink 
               href="/" 
-              icon={<BarChart size={collapsed ? 18 : 16} />} 
+              icon={<BarChart size={collapsed ? 20 : 18} />} 
               active={location === "/"}
             >
               {!collapsed && "Dashboard"}
@@ -145,7 +146,7 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
           <li>
             <SidebarLink 
               href="/shipments" 
-              icon={<Truck size={collapsed ? 18 : 16} />} 
+              icon={<Truck size={collapsed ? 20 : 18} />} 
               active={location === "/shipments"}
             >
               {!collapsed && "Shipments"}
@@ -153,17 +154,8 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
           </li>
           <li>
             <SidebarLink 
-              href="/payments" 
-              icon={<CreditCard size={collapsed ? 18 : 16} />} 
-              active={location === "/payments"}
-            >
-              {!collapsed && "Payments"}
-            </SidebarLink>
-          </li>
-          <li>
-            <SidebarLink 
               href="/tracking" 
-              icon={<Route size={collapsed ? 18 : 16} />} 
+              icon={<Route size={collapsed ? 20 : 18} />} 
               active={location === "/tracking"}
             >
               {!collapsed && "Tracking"}
@@ -172,7 +164,7 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
           <li>
             <SidebarLink 
               href="/history" 
-              icon={<FolderOpen size={collapsed ? 18 : 16} />} 
+              icon={<FolderOpen size={collapsed ? 20 : 18} />} 
               active={location === "/history"}
             >
               {!collapsed && "History"}
@@ -181,23 +173,14 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
 
           {(user?.role === "admin" || user?.role === "manager") && (
             <>
-              <li className={cn("px-3 py-0.5 mt-4 text-[10px] text-neutral-light font-medium", collapsed && "text-center")}>
+              <li className={cn("px-3 py-1 mt-4 text-xs text-neutral-light font-semibold tracking-wide", collapsed && "text-center")}>
                 {!collapsed ? "MANAGEMENT" : "-"}
               </li>
               
               <li>
                 <SidebarLink 
-                  href="/clients" 
-                  icon={<Users size={collapsed ? 18 : 16} />} 
-                  active={location === "/clients"}
-                >
-                  {!collapsed && "Clients"}
-                </SidebarLink>
-              </li>
-              <li>
-                <SidebarLink 
                   href="/tasks" 
-                  icon={<CheckSquare size={collapsed ? 18 : 16} />} 
+                  icon={<CheckSquare size={collapsed ? 20 : 18} />} 
                   active={location === "/tasks"}
                 >
                   {!collapsed && "Tasks"}
@@ -206,7 +189,7 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
               <li>
                 <SidebarLink 
                   href="/users" 
-                  icon={<ShieldCheck size={collapsed ? 18 : 16} />} 
+                  icon={<ShieldCheck size={collapsed ? 20 : 18} />} 
                   active={location === "/users"}
                 >
                   {!collapsed && "Users & Roles"}
@@ -215,7 +198,7 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
               <li>
                 <SidebarLink 
                   href="/settings" 
-                  icon={<Settings size={collapsed ? 18 : 16} />} 
+                  icon={<Settings size={collapsed ? 20 : 18} />} 
                   active={location === "/settings"}
                 >
                   {!collapsed && "Settings"}
@@ -226,34 +209,53 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
         </ul>
       </nav>
 
+      {/* Notifications */}
+      {!collapsed && (
+        <div className="px-3 py-2 border-t border-border-color">
+          <div className="flex items-center">
+            <div className="w-6 h-6 bg-red-50 rounded-full flex items-center justify-center text-red-500">
+              <AlertCircle size={14} />
+            </div>
+            <div className="ml-2">
+              <div className="text-xs font-medium">Critical Tasks</div>
+              <div className="text-[10px] text-muted-foreground">3 tasks require attention</div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Footer */}
-      <div className="py-1.5 px-2 border-t border-border-color">
+      <div className="py-2 px-3 border-t border-border-color">
         {!collapsed ? (
-          <div className="flex items-center justify-between text-[10px] text-neutral-light">
+          <div className="flex items-center justify-between text-xs text-neutral-light">
             <Button 
               variant="ghost" 
-              className="hover:text-primary p-0 h-auto flex items-center text-[10px] font-normal" 
+              className="hover:text-primary p-0 h-auto flex items-center text-xs font-normal" 
               onClick={handleLogout}
             >
-              <LogOut size={10} className="mr-1" />
+              <LogOut size={14} className="mr-1.5" />
               <span>Log out</span>
             </Button>
             <a href="#" className="hover:text-primary flex items-center">
-              <HelpCircle size={10} className="mr-1" />
+              <HelpCircle size={14} className="mr-1.5" />
               <span>Help</span>
             </a>
           </div>
         ) : (
-          <div className="flex flex-col items-center space-y-1.5 text-neutral-light">
+          <div className="flex flex-col items-center space-y-2 text-neutral-light">
+            <a href="#" className="hover:text-red-500 relative">
+              <AlertCircle size={16} />
+              <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full text-[8px] flex items-center justify-center text-white">3</span>
+            </a>
             <Button 
               variant="ghost" 
               className="hover:text-primary p-0 h-auto" 
               onClick={handleLogout}
             >
-              <LogOut size={12} />
+              <LogOut size={16} />
             </Button>
             <a href="#" className="hover:text-primary">
-              <HelpCircle size={12} />
+              <HelpCircle size={16} />
             </a>
           </div>
         )}
