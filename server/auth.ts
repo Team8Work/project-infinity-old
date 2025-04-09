@@ -6,6 +6,8 @@ import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import { storage } from "./storage";
 import { User as SelectUser } from "@shared/schema";
+import { supabaseAdmin } from "@shared/supabase";
+import { checkRole } from "./middleware";
 
 declare global {
   namespace Express {
@@ -127,22 +129,100 @@ export function setupAuth(app: Express) {
     });
   });
 
-  app.get("/api/user", (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
-    const { password, ...userWithoutPassword } = req.user;
-    res.json(userWithoutPassword);
+  app.get("/api/user", async (req, res) => {
+    try {
+      const { data: { session } } = await supabaseAdmin.auth.getSession();
+      if (!session?.user) return res.sendStatus(401);
+
+      // Get user profile from our users table
+      const { data: profile } = await supabaseAdmin
+        .from("users")
+        .select("*")
+        .eq("id", session.user.id)
+        .single();
+
+      if (!profile) return res.sendStatus(401);
+      res.json(profile);
+    } catch (err) {
+      res.sendStatus(401);
+    }
   });
 
-  // Role-based routes
+  // Get all users (admin and manager only)
   app.get("/api/users", checkRole(["admin", "manager"]), async (req, res, next) => {
     try {
-      const users = await storage.getUsers();
-      // Remove passwords before sending user data
-      const sanitizedUsers = users.map(user => {
-        const { password, ...userWithoutPassword } = user;
-        return userWithoutPassword;
+      const { data: users, error } = await supabaseAdmin
+        .from("users")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      res.json(users);
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  // Create user (admin only)
+  app.post("/api/users", checkRole(["admin"]), async (req, res, next) => {
+    try {
+      const { email, password, fullName, role, company } = req.body;
+
+      // First, create the auth user
+      const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true,
       });
-      res.json(sanitizedUsers);
+
+      if (authError) throw authError;
+      if (!authData.user) throw new Error("Failed to create user");
+
+      // Then, create the user profile
+      const { error: profileError } = await supabaseAdmin
+        .from("users")
+        .insert({
+          id: authData.user.id,
+          email,
+          fullName,
+          role,
+          company,
+          username: email.split("@")[0], // Generate username from email
+        });
+
+      if (profileError) throw profileError;
+
+      // Get the created user profile
+      const { data: user, error: getError } = await supabaseAdmin
+        .from("users")
+        .select("*")
+        .eq("id", authData.user.id)
+        .single();
+
+      if (getError) throw getError;
+      res.status(201).json(user);
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  // Delete user (admin only)
+  app.delete("/api/users/:id", checkRole(["admin"]), async (req, res, next) => {
+    try {
+      const userId = req.params.id;
+
+      // Delete the auth user
+      const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(userId);
+      if (authError) throw authError;
+
+      // Delete the user profile
+      const { error: profileError } = await supabaseAdmin
+        .from("users")
+        .delete()
+        .eq("id", userId);
+
+      if (profileError) throw profileError;
+      res.sendStatus(204);
     } catch (err) {
       next(err);
     }

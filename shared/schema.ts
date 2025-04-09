@@ -1,15 +1,14 @@
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb, varchar } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb, varchar, uuid } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
 // User and Auth related schemas
 export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   username: text("username").notNull().unique(),
-  password: text("password").notNull(),
   email: text("email").notNull().unique(),
   fullName: text("full_name").notNull(),
-  role: text("role").notNull().default("client"),
+  role: text("role").notNull().default("employee"),
   company: text("company"),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -17,7 +16,6 @@ export const users = pgTable("users", {
 export const insertUserSchema = createInsertSchema(users)
   .omit({ id: true, createdAt: true })
   .extend({
-    password: z.string().min(8, "Password must be at least 8 characters long"),
     email: z.string().email("Invalid email format"),
     role: z.enum(["admin", "manager", "employee"]).default("employee"),
   });
